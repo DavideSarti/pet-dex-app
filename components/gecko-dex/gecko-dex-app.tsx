@@ -5,7 +5,7 @@ import type { AnimalProfile } from "./types"
 import { GridView } from "./grid-view"
 import { PokedexShell } from "./pokedex-shell"
 import { PinScreen } from "./pin-screen"
-import { supabase, isSupabaseConfigured } from "@/lib/supabase"
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase"
 
 const STORAGE_KEY = "pet-dex-animals"
 const COUNTERS_KEY = "pet-dex-counters"
@@ -123,7 +123,10 @@ function makeBeetleDefaults(id: string, dexNumber: number): AnimalProfile {
 // ---- Cloud sync helpers ----
 
 async function fetchCloudData(pin: string) {
-  const { data, error } = await supabase
+  const sb = getSupabase()
+  if (!sb) return null
+
+  const { data, error } = await sb
     .from("pet_dex_data")
     .select("animals, counters")
     .eq("pin", pin)
@@ -138,7 +141,10 @@ async function saveToCloud(
   animals: AnimalProfile[],
   counters: { nextId: number; nextDexNumber: number }
 ) {
-  const { error } = await supabase.from("pet_dex_data").upsert(
+  const sb = getSupabase()
+  if (!sb) return
+
+  const { error } = await sb.from("pet_dex_data").upsert(
     {
       pin,
       animals: JSON.parse(JSON.stringify(animals)),
