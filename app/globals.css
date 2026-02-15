@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 90 61% 4%;
+    --foreground: 90 61% 67%;
+    --card: 90 61% 8%;
+    --card-foreground: 90 61% 67%;
+    --popover: 90 61% 8%;
+    --popover-foreground: 90 61% 67%;
+    --primary: 90 61% 67%;
+    --primary-foreground: 90 61% 4%;
+    --secondary: 90 61% 12%;
+    --secondary-foreground: 90 61% 67%;
+    --muted: 90 30% 15%;
+    --muted-foreground: 90 40% 45%;
+    --accent: 90 61% 20%;
+    --accent-foreground: 90 61% 67%;
+    --destructive: 0 60% 40%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 90 61% 30%;
+    --input: 90 61% 20%;
+    --ring: 90 61% 67%;
+    --chart-1: 90 61% 67%;
+    --chart-2: 90 61% 50%;
+    --chart-3: 90 61% 35%;
+    --chart-4: 90 61% 20%;
+    --chart-5: 90 61% 12%;
+    --radius: 0rem;
+    --sidebar-background: 90 61% 4%;
+    --sidebar-foreground: 90 61% 67%;
+    --sidebar-primary: 90 61% 67%;
+    --sidebar-primary-foreground: 90 61% 4%;
+    --sidebar-accent: 90 61% 12%;
+    --sidebar-accent-foreground: 90 61% 67%;
+    --sidebar-border: 90 61% 30%;
+    --sidebar-ring: 90 61% 67%;
+
+    --gb-darkest: #0f380f;
+    --gb-dark: #306230;
+    --gb-light: #8bac0f;
+    --gb-lightest: #9bbc0f;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+/* Scanline effect */
+.scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+}
+
+/* Pixel border utility */
+.pixel-border {
+  box-shadow:
+    inset -4px -4px 0px 0px var(--gb-darkest),
+    inset 4px 4px 0px 0px var(--gb-light);
+}
+
+.pixel-border-inset {
+  box-shadow:
+    inset 4px 4px 0px 0px var(--gb-darkest),
+    inset -4px -4px 0px 0px var(--gb-light);
+}
+
+/* Blink animation for cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Custom scrollbar for retro feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--gb-darkest);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gb-dark);
+  border: 2px solid var(--gb-darkest);
+}
+
+/* Flicker animation for screen power-on effect */
+@keyframes flicker {
+  0% { opacity: 0.1; }
+  5% { opacity: 0.5; }
+  10% { opacity: 0.3; }
+  15% { opacity: 0.8; }
+  20% { opacity: 0.5; }
+  25% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.animate-flicker {
+  animation: flicker 0.5s ease-in-out;
+}
