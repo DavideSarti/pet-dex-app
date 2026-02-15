@@ -1,9 +1,12 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import type { AnimalProfile } from "./types"
 import { GridView } from "./grid-view"
 import { PokedexShell } from "./pokedex-shell"
+
+const STORAGE_KEY = "pet-dex-animals"
+const COUNTERS_KEY = "pet-dex-counters"
 
 const DEFAULT_ANIMAL: AnimalProfile = {
   id: "1",
@@ -27,6 +30,33 @@ const DEFAULT_ANIMAL: AnimalProfile = {
   prescriptions: [],
   weightHistory: [],
   image: "/images/gecko-sprite.png",
+}
+
+function loadAnimals(): AnimalProfile[] {
+  if (typeof window === "undefined") return [DEFAULT_ANIMAL]
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw) as AnimalProfile[]
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed
+    }
+  } catch {}
+  return [DEFAULT_ANIMAL]
+}
+
+function loadCounters(): { nextId: number; nextDexNumber: number } {
+  if (typeof window === "undefined") return { nextId: 2, nextDexNumber: 2 }
+  try {
+    const raw = localStorage.getItem(COUNTERS_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      return {
+        nextId: parsed.nextId ?? 2,
+        nextDexNumber: parsed.nextDexNumber ?? 2,
+      }
+    }
+  } catch {}
+  return { nextId: 2, nextDexNumber: 2 }
 }
 
 let nextId = 2
@@ -83,8 +113,35 @@ function makeBeetleDefaults(id: string, dexNumber: number): AnimalProfile {
 }
 
 export function GeckoDexApp() {
-  const [animals, setAnimals] = useState<AnimalProfile[]>([DEFAULT_ANIMAL])
+  const [animals, setAnimals] = useState<AnimalProfile[]>(loadAnimals)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const initialized = useRef(false)
+
+  // Restore counters on first mount
+  useEffect(() => {
+    if (!initialized.current) {
+      const counters = loadCounters()
+      nextId = counters.nextId
+      nextDexNumber = counters.nextDexNumber
+      initialized.current = true
+    }
+  }, [])
+
+  // Save animals to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(animals))
+    } catch {}
+  }, [animals])
+
+  const saveCounters = useCallback(() => {
+    try {
+      localStorage.setItem(
+        COUNTERS_KEY,
+        JSON.stringify({ nextId, nextDexNumber })
+      )
+    } catch {}
+  }, [])
 
   const selectedAnimal = selectedId
     ? animals.find((a) => a.id === selectedId) ?? null
@@ -106,7 +163,8 @@ export function GeckoDexApp() {
         ? makeBeetleDefaults(id, dexNumber)
         : makeGeckoDefaults(id, dexNumber)
     setAnimals((prev) => [...prev, newAnimal])
-  }, [])
+    saveCounters()
+  }, [saveCounters])
 
   const handleDelete = useCallback(
     (id: string) => {
