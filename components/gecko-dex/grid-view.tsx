@@ -11,9 +11,10 @@ interface GridViewProps {
   onAdd: (species: string) => void
   onDelete: (id: string) => void
   onReorder: (animals: AnimalProfile[]) => void
+  onChangePin?: () => void
 }
 
-export function GridView({ animals, onSelect, onAdd, onDelete, onReorder }: GridViewProps) {
+export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChangePin }: GridViewProps) {
   const [showSpeciesPicker, setShowSpeciesPicker] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -255,14 +256,24 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder }: Grid
           <span className="text-[5px] text-neutral-600 tracking-[0.15em]">
             PET-DEX
           </span>
-          <div className="flex gap-[3px]" aria-hidden="true">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-[2px] h-3 rounded-full"
-                style={{ background: "#2a2a2a" }}
-              />
-            ))}
+          <div className="flex items-center gap-2">
+            {onChangePin && (
+              <button
+                onClick={onChangePin}
+                className="text-[5px] text-neutral-600 hover:text-neutral-400 tracking-[0.1em] transition-colors"
+              >
+                CHANGE PIN
+              </button>
+            )}
+            <div className="flex gap-[3px]" aria-hidden="true">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-[2px] h-3 rounded-full"
+                  style={{ background: "#2a2a2a" }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

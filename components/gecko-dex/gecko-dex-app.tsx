@@ -4,9 +4,12 @@ import { useState, useCallback, useEffect, useRef } from "react"
 import type { AnimalProfile } from "./types"
 import { GridView } from "./grid-view"
 import { PokedexShell } from "./pokedex-shell"
+import { PinScreen } from "./pin-screen"
+import { supabase, isSupabaseConfigured } from "@/lib/supabase"
 
 const STORAGE_KEY = "pet-dex-animals"
 const COUNTERS_KEY = "pet-dex-counters"
+const PIN_KEY = "pet-dex-pin"
 
 const DEFAULT_ANIMAL: AnimalProfile = {
   id: "1",
@@ -32,7 +35,7 @@ const DEFAULT_ANIMAL: AnimalProfile = {
   image: "/images/gecko-sprite.png",
 }
 
-function loadAnimals(): AnimalProfile[] {
+function loadAnimalsLocal(): AnimalProfile[] {
   if (typeof window === "undefined") return [DEFAULT_ANIMAL]
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -44,7 +47,7 @@ function loadAnimals(): AnimalProfile[] {
   return [DEFAULT_ANIMAL]
 }
 
-function loadCounters(): { nextId: number; nextDexNumber: number } {
+function loadCountersLocal(): { nextId: number; nextDexNumber: number } {
   if (typeof window === "undefined") return { nextId: 2, nextDexNumber: 2 }
   try {
     const raw = localStorage.getItem(COUNTERS_KEY)
@@ -57,6 +60,11 @@ function loadCounters(): { nextId: number; nextDexNumber: number } {
     }
   } catch {}
   return { nextId: 2, nextDexNumber: 2 }
+}
+
+function loadPinLocal(): string | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem(PIN_KEY)
 }
 
 let nextId = 2
@@ -112,20 +120,76 @@ function makeBeetleDefaults(id: string, dexNumber: number): AnimalProfile {
   }
 }
 
+// ---- Cloud sync helpers ----
+
+async function fetchCloudData(pin: string) {
+  const { data, error } = await supabase
+    .from("pet_dex_data")
+    .select("animals, counters")
+    .eq("pin", pin)
+    .maybeSingle()
+
+  if (error) throw error
+  return data
+}
+
+async function saveToCloud(
+  pin: string,
+  animals: AnimalProfile[],
+  counters: { nextId: number; nextDexNumber: number }
+) {
+  const { error } = await supabase.from("pet_dex_data").upsert(
+    {
+      pin,
+      animals: JSON.parse(JSON.stringify(animals)),
+      counters,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "pin" }
+  )
+  if (error) throw error
+}
+
+// ---- Main component ----
+
 export function GeckoDexApp() {
-  const [animals, setAnimals] = useState<AnimalProfile[]>(loadAnimals)
+  const cloudEnabled = isSupabaseConfigured()
+
+  const [pin, setPin] = useState<string | null>(loadPinLocal)
+  const [pinLoading, setPinLoading] = useState(false)
+  const [pinError, setPinError] = useState<string | null>(null)
+  const [ready, setReady] = useState(!cloudEnabled)
+
+  const [animals, setAnimals] = useState<AnimalProfile[]>(loadAnimalsLocal)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const initialized = useRef(false)
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pinRef = useRef(pin)
+  pinRef.current = pin
 
   // Restore counters on first mount
   useEffect(() => {
     if (!initialized.current) {
-      const counters = loadCounters()
+      const counters = loadCountersLocal()
       nextId = counters.nextId
       nextDexNumber = counters.nextDexNumber
       initialized.current = true
     }
   }, [])
+
+  // If cloud is not configured, skip PIN and go straight to localStorage mode
+  useEffect(() => {
+    if (!cloudEnabled) {
+      setReady(true)
+      return
+    }
+    const savedPin = loadPinLocal()
+    if (savedPin) {
+      setPin(savedPin)
+      handlePinSubmit(savedPin)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cloudEnabled])
 
   // Save animals to localStorage whenever they change
   useEffect(() => {
@@ -134,13 +198,82 @@ export function GeckoDexApp() {
     } catch {}
   }, [animals])
 
-  const saveCounters = useCallback(() => {
+  const saveCountersLocal = useCallback(() => {
     try {
       localStorage.setItem(
         COUNTERS_KEY,
         JSON.stringify({ nextId, nextDexNumber })
       )
     } catch {}
+  }, [])
+
+  // Debounced cloud save (waits 500ms after last change)
+  const scheduleCloudSave = useCallback(
+    (updatedAnimals: AnimalProfile[]) => {
+      if (!cloudEnabled || !pinRef.current) return
+      if (saveTimeout.current) clearTimeout(saveTimeout.current)
+      saveTimeout.current = setTimeout(async () => {
+        try {
+          await saveToCloud(pinRef.current!, updatedAnimals, {
+            nextId,
+            nextDexNumber,
+          })
+        } catch (err) {
+          console.error("Cloud save failed:", err)
+        }
+      }, 500)
+    },
+    [cloudEnabled]
+  )
+
+  // PIN submit handler
+  async function handlePinSubmit(submittedPin: string) {
+    setPinLoading(true)
+    setPinError(null)
+    try {
+      const cloudData = await fetchCloudData(submittedPin)
+
+      if (cloudData) {
+        const cloudAnimals = cloudData.animals as AnimalProfile[]
+        const cloudCounters = cloudData.counters as {
+          nextId: number
+          nextDexNumber: number
+        }
+        if (Array.isArray(cloudAnimals) && cloudAnimals.length > 0) {
+          setAnimals(cloudAnimals)
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudAnimals))
+        }
+        if (cloudCounters) {
+          nextId = cloudCounters.nextId ?? 2
+          nextDexNumber = cloudCounters.nextDexNumber ?? 2
+          localStorage.setItem(COUNTERS_KEY, JSON.stringify(cloudCounters))
+        }
+      } else {
+        // First time with this PIN: push current local data to cloud
+        const localAnimals = loadAnimalsLocal()
+        await saveToCloud(submittedPin, localAnimals, {
+          nextId,
+          nextDexNumber,
+        })
+      }
+
+      setPin(submittedPin)
+      pinRef.current = submittedPin
+      localStorage.setItem(PIN_KEY, submittedPin)
+      setReady(true)
+    } catch (err) {
+      console.error("Sync error:", err)
+      setPinError("CONNECTION FAILED. CHECK YOUR INTERNET.")
+    } finally {
+      setPinLoading(false)
+    }
+  }
+
+  // Change PIN (accessible from grid view)
+  const handleChangePin = useCallback(() => {
+    localStorage.removeItem(PIN_KEY)
+    setPin(null)
+    setReady(false)
   }, [])
 
   const selectedAnimal = selectedId
@@ -155,34 +288,65 @@ export function GeckoDexApp() {
     setSelectedId(null)
   }, [])
 
-  const handleAdd = useCallback((species: string) => {
-    const id = String(nextId++)
-    const dexNumber = nextDexNumber++
-    const newAnimal =
-      species === "RHINO BEETLE"
-        ? makeBeetleDefaults(id, dexNumber)
-        : makeGeckoDefaults(id, dexNumber)
-    setAnimals((prev) => [...prev, newAnimal])
-    saveCounters()
-  }, [saveCounters])
+  const handleAdd = useCallback(
+    (species: string) => {
+      const id = String(nextId++)
+      const dexNumber = nextDexNumber++
+      const newAnimal =
+        species === "RHINO BEETLE"
+          ? makeBeetleDefaults(id, dexNumber)
+          : makeGeckoDefaults(id, dexNumber)
+      setAnimals((prev) => {
+        const updated = [...prev, newAnimal]
+        scheduleCloudSave(updated)
+        return updated
+      })
+      saveCountersLocal()
+    },
+    [saveCountersLocal, scheduleCloudSave]
+  )
 
   const handleDelete = useCallback(
     (id: string) => {
-      setAnimals((prev) => prev.filter((a) => a.id !== id))
+      setAnimals((prev) => {
+        const updated = prev.filter((a) => a.id !== id)
+        scheduleCloudSave(updated)
+        return updated
+      })
       if (selectedId === id) setSelectedId(null)
     },
-    [selectedId]
+    [selectedId, scheduleCloudSave]
   )
 
-  const handleUpdate = useCallback((updated: AnimalProfile) => {
-    setAnimals((prev) =>
-      prev.map((a) => (a.id === updated.id ? updated : a))
-    )
-  }, [])
+  const handleUpdate = useCallback(
+    (updated: AnimalProfile) => {
+      setAnimals((prev) => {
+        const newList = prev.map((a) => (a.id === updated.id ? updated : a))
+        scheduleCloudSave(newList)
+        return newList
+      })
+    },
+    [scheduleCloudSave]
+  )
 
-  const handleReorder = useCallback((reordered: AnimalProfile[]) => {
-    setAnimals(reordered)
-  }, [])
+  const handleReorder = useCallback(
+    (reordered: AnimalProfile[]) => {
+      setAnimals(reordered)
+      scheduleCloudSave(reordered)
+    },
+    [scheduleCloudSave]
+  )
+
+  // Show PIN screen if cloud is enabled but not yet authenticated
+  if (cloudEnabled && !ready) {
+    return (
+      <PinScreen
+        onSubmit={handlePinSubmit}
+        loading={pinLoading}
+        error={pinError}
+      />
+    )
+  }
 
   if (selectedAnimal) {
     return (
@@ -202,6 +366,7 @@ export function GeckoDexApp() {
       onAdd={handleAdd}
       onDelete={handleDelete}
       onReorder={handleReorder}
+      onChangePin={cloudEnabled ? handleChangePin : undefined}
     />
   )
 }
