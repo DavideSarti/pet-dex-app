@@ -10,8 +10,8 @@ const pressStart2P = Press_Start_2P({
 })
 
 export const metadata: Metadata = {
-  title: 'GECKO-DEX',
-  description: 'Retro 8-bit Leopard Gecko Tracker - Gotta Track Em All!',
+  title: 'PET-DEX',
+  description: 'Retro 8-bit Pet Tracker - Gotta Track Em All!',
 }
 
 export const viewport: Viewport = {

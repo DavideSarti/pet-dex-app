@@ -343,10 +343,10 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
   const titleLabel = "PET-DEX"
 
   return (
-    <div className="min-h-dvh bg-gb-darkest flex items-center justify-center p-2">
+    <div className="h-dvh bg-gb-darkest flex items-center justify-center p-2 sm:p-4">
       {/* Outer GameBoy shell */}
       <div
-        className="w-full max-w-[380px] flex flex-col"
+        className="w-full max-w-[480px] h-full max-h-dvh flex flex-col"
         style={{
           background:
             "linear-gradient(180deg, #4a4a4a 0%, #3a3a3a 50%, #2a2a2a 100%)",
@@ -373,7 +373,7 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
 
         {/* Screen bezel */}
         <div
-          className="relative"
+          className="relative flex-1 min-h-0 flex flex-col"
           style={{
             background: "#1a1a1a",
             borderRadius: "4px",
@@ -381,15 +381,14 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
             boxShadow: "inset 0 2px 8px rgba(0,0,0,0.8)",
           }}
         >
-          {/* Inner screen with green glow - fixed height, scrollable */}
+          {/* Inner screen with green glow - fills available space, scrollable */}
           <div
-            className="relative"
+            className="relative flex-1 min-h-0"
             style={{
               background: "#0f380f",
               border: "3px solid #0a2a0a",
               boxShadow:
                 "inset 0 0 20px rgba(15,56,15,0.8), 0 0 4px rgba(139,172,15,0.1)",
-              height: "540px",
               overflow: "hidden",
             }}
           >
@@ -400,7 +399,7 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
             />
 
             {/* Screen content - scrollable */}
-            <div className="relative p-3 flex flex-col gap-2.5 animate-flicker h-full overflow-y-auto">
+            <div className="relative p-3 flex flex-col gap-2.5 animate-flicker h-full overflow-y-auto screen-zoom">
               {/* Title bar with back button */}
               <header className="text-center relative">
                 <button
