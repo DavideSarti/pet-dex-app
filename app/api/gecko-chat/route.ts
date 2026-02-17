@@ -1,4 +1,4 @@
-import { createOpenAI } from "@ai-sdk/openai"
+import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import {
   consumeStream,
   convertToModelMessages,
@@ -8,50 +8,80 @@ import {
 
 export const maxDuration = 30
 
-const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY ?? "" })
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY ?? "",
+})
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY?.trim()
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim()
   if (!apiKey) {
     return new Response(
-      "OPENAI_API_KEY is missing or empty. Add your key to .env.local (one line: OPENAI_API_KEY=sk-proj-your-key) then restart the dev server.",
+      "GOOGLE_GENERATIVE_AI_API_KEY is missing or empty. Add your key to .env.local then restart the dev server.",
       { status: 401, headers: { "Content-Type": "text/plain; charset=utf-8" } }
     )
   }
 
-  const { messages, geckoData }: { messages: UIMessage[]; geckoData?: Record<string, unknown> } =
+  const {
+    messages,
+    animalsData,
+  }: { messages: UIMessage[]; animalsData?: Record<string, unknown>[] } =
     await req.json()
 
-  const geckoContext = geckoData
-    ? `
-CURRENT GECKO DATA:
-- Name: ${geckoData.name}
-- Morph: ${geckoData.morph}
-- Born: ${geckoData.born}
-- Current Weight: ${geckoData.weight}g
-- Last Feed: ${geckoData.lastFeed}
-- Last Shed: ${geckoData.lastShed}
-- Health Log:
-${Array.isArray(geckoData.healthLog) ? (geckoData.healthLog as Array<{ text: string }>).map((e) => `  > ${e.text}`).join("\n") : "No records"}
+  let animalsContext = ""
+  if (Array.isArray(animalsData) && animalsData.length > 0) {
+    animalsContext = `
+CURRENT PET COLLECTION (${animalsData.length} animals):
+${animalsData
+  .map((a, i) => {
+    const lines = [`--- ANIMAL #${i + 1} ---`]
+    lines.push(`  Name: ${a.name}`)
+    lines.push(`  Species: ${a.species}`)
+    if (a.breed) lines.push(`  Breed: ${a.breed}`)
+    if (a.morph) lines.push(`  Morph: ${a.morph}`)
+    lines.push(`  Sex: ${a.sex}`)
+    lines.push(`  Born: ${a.born}`)
+    lines.push(`  Weight: ${a.weight}${a.species === "DOG" ? "kg" : "g"}`)
+    if (a.lastFeed) lines.push(`  Last Fed: ${a.lastFeed}`)
+    if (a.lastShed) lines.push(`  Last Shed: ${a.lastShed}`)
+    if (a.stage) lines.push(`  Stage: ${a.stage}`)
+    if (a.substrate) lines.push(`  Substrate: ${a.substrate}`)
+    if (a.lastVetCheckup) lines.push(`  Last Vet Checkup: ${a.lastVetCheckup}`)
+    if (a.nextVaccination) lines.push(`  Next Vaccination: ${a.nextVaccination}`)
+    if (Array.isArray(a.healthLog) && (a.healthLog as Array<{ text: string }>).length > 0) {
+      lines.push(`  Health Log:`)
+      ;(a.healthLog as Array<{ text: string }>).forEach((e) => lines.push(`    > ${e.text}`))
+    }
+    if (Array.isArray(a.prescriptions) && (a.prescriptions as Array<{ medName: string; completed: boolean }>).length > 0) {
+      lines.push(`  Active Prescriptions:`)
+      ;(a.prescriptions as Array<{ medName: string; completed: boolean; dosesGiven: string[]; totalDays: number }>).forEach((rx) => {
+        const status = rx.completed ? "COMPLETE" : `${rx.dosesGiven.length}/${rx.totalDays} doses`
+        lines.push(`    > ${rx.medName}: ${status}`)
+      })
+    }
+    return lines.join("\n")
+  })
+  .join("\n\n")}
 `
-    : ""
+  }
 
   const result = streamText({
-    model: openai("gpt-4o-mini"),
-    system: `You are GECKO-AI, an expert veterinary assistant specializing in leopard geckos. You speak in a concise, retro 8-bit style — short sentences, helpful and direct. You have deep knowledge about:
+    model: google("gemini-2.0-flash"),
+    system: `You are PET-AI, an expert veterinary assistant for exotic pets and dogs. You speak in a concise, retro 8-bit style — short sentences, helpful and direct. You have deep knowledge about:
 
-- Leopard gecko husbandry (temperature, humidity, substrate, hides)
-- Feeding (mealworms, crickets, dubia roaches, supplements, calcium, D3)
-- Shedding cycles and problems (stuck shed, humidity tips)
-- Common health issues (metabolic bone disease, impaction, respiratory infections, parasites, eye problems)
-- Weight and growth charts for leopard geckos by age
-- Morph genetics and characteristics
+- Leopard gecko husbandry (temperature, humidity, substrate, hides, feeding, shedding, morphs)
+- Rhino beetle care (substrate, stages, feeding, temperature)
+- Dog care (health, vaccinations, feeding, weight management, breeds)
+- Common health issues for all these species
+- Weight and growth charts
+- Medications and prescriptions
 
-You also have access to the user's specific gecko data and health history. When answering questions, reference this specific data when relevant. For example, if asked "is my gecko healthy?", check the weight against typical ranges for the gecko's age, review the health log for concerns, etc.
+You have access to the user's COMPLETE pet collection data. When the user asks questions like "which animal weighs the most?", "who was last fed?", "show me all health issues", "how many geckos do I have?", etc. — you can search through ALL the data and give precise answers.
 
-Keep answers SHORT (2-4 sentences max) unless the user asks for detail. Use CAPS for emphasis like a retro game. Never use markdown formatting — plain text only.
+When answering questions, ALWAYS reference specific animal names and data. For example, if asked "are my pets healthy?", check weights, feeding dates, health logs, and prescriptions for EACH animal and give a summary.
 
-${geckoContext}`,
+Keep answers SHORT (2-5 sentences max) unless the user asks for detail. Use CAPS for emphasis like a retro game. Never use markdown formatting — plain text only.
+
+${animalsContext}`,
     messages: await convertToModelMessages(messages),
     abortSignal: req.signal,
   })

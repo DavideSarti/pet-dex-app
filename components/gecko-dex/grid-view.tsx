@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react"
 import type { AnimalProfile } from "./types"
 import { AnimalCard } from "./animal-card"
 import { SpeciesPicker } from "./species-picker"
@@ -23,6 +23,10 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
   const isDragging = useRef(false)
   const lastSwapIdx = useRef<number | null>(null)
 
+  // FLIP animation refs
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const prevRects = useRef<Map<string, DOMRect>>(new Map())
+
   const LONG_PRESS_MS = 400
 
   const clearLongPress = useCallback(() => {
@@ -31,6 +35,43 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
       longPressTimer.current = null
     }
   }, [])
+
+  // Snapshot card positions before React re-renders (for FLIP)
+  const snapshotPositions = useCallback(() => {
+    const rects = new Map<string, DOMRect>()
+    cardRefs.current.forEach((el, id) => {
+      if (el) rects.set(id, el.getBoundingClientRect())
+    })
+    prevRects.current = rects
+  }, [])
+
+  // After React re-renders, animate cards from old to new positions
+  useLayoutEffect(() => {
+    const prev = prevRects.current
+    if (prev.size === 0) return
+
+    cardRefs.current.forEach((el, id) => {
+      if (!el || id === dragId) return
+      const oldRect = prev.get(id)
+      if (!oldRect) return
+      const newRect = el.getBoundingClientRect()
+      const dx = oldRect.left - newRect.left
+      const dy = oldRect.top - newRect.top
+      if (dx === 0 && dy === 0) return
+
+      el.style.transition = "none"
+      el.style.transform = `translate(${dx}px, ${dy}px)`
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          el.style.transition = "transform 0.25s ease"
+          el.style.transform = "translate(0, 0)"
+        })
+      })
+    })
+
+    prevRects.current = new Map()
+  })
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent, id: string) => {
@@ -75,9 +116,9 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
         if (cardEl) {
           const targetIdx = parseInt(cardEl.dataset.cardIdx ?? "", 10)
           if (!isNaN(targetIdx) && targetIdx !== lastSwapIdx.current) {
-            // Live swap: move the dragged item to the target position immediately
             const fromIdx = animals.findIndex((a) => a.id === dragId)
             if (fromIdx !== -1 && fromIdx !== targetIdx) {
+              snapshotPositions()
               const reordered = [...animals]
               const [moved] = reordered.splice(fromIdx, 1)
               reordered.splice(targetIdx, 0, moved)
@@ -88,7 +129,7 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
         }
       }
     },
-    [clearLongPress, dragId, animals, onReorder]
+    [clearLongPress, dragId, animals, onReorder, snapshotPositions]
   )
 
   const handlePointerUp = useCallback(() => {
@@ -115,6 +156,14 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
     },
     [onAdd]
   )
+
+  const setCardRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) {
+      cardRefs.current.set(id, el)
+    } else {
+      cardRefs.current.delete(id)
+    }
+  }, [])
 
   return (
     <div className="h-dvh bg-gb-darkest flex items-center justify-center p-2 sm:p-4">
@@ -206,21 +255,22 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
                   return (
                     <div
                       key={animal.id}
+                      ref={(el) => setCardRef(animal.id, el)}
                       data-card-idx={idx}
                       onPointerDown={(e) => handlePointerDown(e, animal.id)}
                       className={`relative select-none ${isBeingDragged ? "touch-none" : ""}`}
                       style={{
                         zIndex: isBeingDragged ? 50 : 1,
                         pointerEvents: isBeingDragged ? "none" : "auto",
-                        transform: isBeingDragged
-                          ? `translate(${dragOffset.x}px, ${dragOffset.y}px) scale(1.1)`
-                          : "none",
-                        transition: isBeingDragged
-                          ? "transform 0s, box-shadow 0.2s"
-                          : "transform 0.2s ease, box-shadow 0.2s",
-                        boxShadow: isBeingDragged
-                          ? "0 8px 24px rgba(0,0,0,0.5), 0 0 0 2px rgba(139,172,15,0.4)"
-                          : "none",
+                        ...(isBeingDragged
+                          ? {
+                              transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) scale(1.05)`,
+                              transition: "box-shadow 0.2s",
+                              boxShadow:
+                                "0 8px 24px rgba(0,0,0,0.5), 0 0 0 2px rgba(139,172,15,0.4)",
+                              opacity: 0.9,
+                            }
+                          : {}),
                         borderRadius: "2px",
                       }}
                     >

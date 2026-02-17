@@ -3,19 +3,10 @@
 import { useState, useRef, useEffect } from "react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
-
-interface GeckoData {
-  name: string
-  morph: string
-  born: string
-  weight: string
-  lastFeed: string
-  lastShed: string
-  healthLog: { id: string; text: string }[]
-}
+import type { AnimalProfile } from "./types"
 
 interface ChatModalProps {
-  geckoData: GeckoData
+  animals: AnimalProfile[]
   onClose: () => void
 }
 
@@ -23,7 +14,6 @@ function getUIMessageText(msg: {
   parts?: Array<{ type: string; text?: string }>
   content?: string
 }): string {
-  // Prefer parts (AI SDK v5+)
   if (msg.parts && Array.isArray(msg.parts)) {
     const fromParts = msg.parts
       .filter((p): p is { type: "text"; text: string } => p.type === "text" && typeof p.text === "string")
@@ -31,74 +21,69 @@ function getUIMessageText(msg: {
       .join("")
     if (fromParts) return fromParts
   }
-  // Fallback: legacy content string
   if (typeof (msg as { content?: string }).content === "string") {
     return (msg as { content: string }).content
   }
   return ""
 }
 
-function ChatModal({ geckoData, onClose }: ChatModalProps) {
-    const [input, setInput] = useState("")
-    const scrollRef = useRef<HTMLDivElement>(null)
+function ChatModal({ animals, onClose }: ChatModalProps) {
+  const [input, setInput] = useState("")
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-    const { messages, sendMessage, status, error, clearError, setMessages } = useChat({
-      transport: new DefaultChatTransport({ api: "/api/gecko-chat" }),
-      messages: [],
-    })
+  const { messages, sendMessage, status, error, clearError, setMessages } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/gecko-chat" }),
+    messages: [],
+  })
 
-    const isLoading = status === "streaming" || status === "submitted"
+  const isLoading = status === "streaming" || status === "submitted"
 
-    // Demo mode: when API fails (no key, invalid key, etc.), reply with a canned GECKO-AI answer
-    const DEMO_REPLIES = [
-      "LEOPARD GECKOS LOVE WARM HIDES! Keep one side 88-92°F. Cool side 75-80°F. They need both to thermoregulate. GECKO APPROVED!",
-      "SHEDDING TIP: Bump humidity when they go dull. A moist hide or light mist helps. Never pull stuck shed — warm soaks only!",
-      "FEEDING: Dust insects with calcium (no D3 most days). Add D3 once or twice a week. Gut-load those bugs!",
-      "62g is a healthy weight for many adults! Monitor that tail — nice and plump = good. If it gets skinny, see a vet.",
-      "GECKO-AI here! I am in DEMO mode. Add a paid OpenAI key to .env.local for real answers. Until then, enjoy these tips!",
-      "Humidity 30-40% normally, 50-60% when shedding. Digital hygrometer = your friend. Stay crunchy!",
-      "Three hides minimum: warm, cool, moist. They need choices. More hides = happier gecko. Simple as that!",
-    ]
+  const DEMO_REPLIES = [
+    "PET-AI here! I have access to ALL your animals. Ask me about weights, feeding schedules, health logs, or anything!",
+    "TIP: You can ask things like 'WHICH PET WAS LAST FED?' or 'HOW MANY GECKOS DO I HAVE?' and I'll search your data!",
+    "FEEDING TIP: Always dust insects with calcium for geckos. Dogs need balanced kibble. Beetles love fruit jelly!",
+    "PET-AI is in DEMO mode. Add a Gemini API key to .env.local for real answers. Until then, enjoy these tips!",
+    "PRO TIP: Regular weight tracking helps spot health issues early. I can analyze trends across ALL your pets!",
+  ]
 
-    useEffect(() => {
-      if (!error) return
-      const reply =
-        DEMO_REPLIES[Math.floor(Math.random() * DEMO_REPLIES.length)]
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `demo-${Date.now()}`,
-          role: "assistant",
-          parts: [{ type: "text" as const, text: reply }],
-        },
-      ])
-      clearError()
-    }, [error, setMessages, clearError])
+  useEffect(() => {
+    if (!error) return
+    const reply = DEMO_REPLIES[Math.floor(Math.random() * DEMO_REPLIES.length)]
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `demo-${Date.now()}`,
+        role: "assistant",
+        parts: [{ type: "text" as const, text: reply }],
+      },
+    ])
+    clearError()
+  }, [error, setMessages, clearError]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    useEffect(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-      }
-    }, [messages])
-
-    const handleSubmit = () => {
-      if (!input.trim() || isLoading) return
-      sendMessage(
-        { text: input },
-        {
-          body: { geckoData },
-        }
-      )
-      setInput("")
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
+  }, [messages])
 
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-        <div className="w-full max-w-[340px] max-h-[80vh] flex flex-col bg-gb-darkest p-2 pixel-border" onClick={(e) => e.stopPropagation()}>
+  const handleSubmit = () => {
+    if (!input.trim() || isLoading) return
+    sendMessage(
+      { text: input },
+      {
+        body: { animalsData: animals },
+      }
+    )
+    setInput("")
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="w-full max-w-[340px] max-h-[80vh] flex flex-col bg-gb-darkest p-2 pixel-border" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-1 pb-1.5 border-b border-gb-dark">
           <div className="text-[7px] text-gb-lightest tracking-wider">
-            {"== GECKO-AI =="}
+            {"== PET-AI =="}
           </div>
           <button
             onClick={onClose}
@@ -114,13 +99,13 @@ function ChatModal({ geckoData, onClose }: ChatModalProps) {
           <div className="mx-1.5 mb-1.5 rounded border border-red-900/50 bg-red-950/30 px-2 py-1.5 text-[6px] text-red-300">
             <span className="font-bold">SETUP NEEDED</span>
             <div className="mt-1 text-[5px] text-red-200 leading-relaxed">
-              Chat needs an OpenAI key. Do this once:
+              Chat needs a Gemini API key. Do this once:
             </div>
             <ol className="mt-1 text-[5px] text-red-400 list-decimal list-inside space-y-0.5">
-              <li>Get a key: platform.openai.com → API keys → Create</li>
-              <li>Open file: pokedex-interface-design\.env.local (same folder as package.json)</li>
-              <li>Replace the line so it says: OPENAI_API_KEY=sk-proj-... (paste your key, no quotes)</li>
-              <li>Save, then in terminal: Ctrl+C, then npm run dev</li>
+              <li>Get a key: aistudio.google.com → API keys → Create</li>
+              <li>Open file: .env.local (same folder as package.json)</li>
+              <li>Add: GOOGLE_GENERATIVE_AI_API_KEY=your-key-here</li>
+              <li>Save, then restart the dev server</li>
             </ol>
             <button
               type="button"
@@ -136,11 +121,15 @@ function ChatModal({ geckoData, onClose }: ChatModalProps) {
         {messages.length === 0 && !error && (
           <div className="px-1 py-2 text-[5px] text-gb-dark text-center leading-relaxed">
             {"ASK ME ANYTHING ABOUT"}<br />
-            {"YOUR GECKO OR LEOPARD"}<br />
-            {"GECKOS IN GENERAL!"}
+            {"YOUR PET COLLECTION!"}<br />
+            <span className="text-gb-dark/60">
+              {"I HAVE ACCESS TO ALL"}<br />
+              {`${animals.length} ANIMAL${animals.length !== 1 ? "S" : ""} IN YOUR DEX`}
+            </span>
             <div className="mt-1.5 text-gb-dark/70">
-              {"TRY: \"IS MY GECKO'S WEIGHT"}<br />
-              {"OK?\" OR \"SHEDDING TIPS\""}
+              {"TRY: \"WHO NEEDS FEEDING?\""}<br />
+              {"OR \"HEALTH SUMMARY\""}<br />
+              {"OR \"HEAVIEST PET?\""}
             </div>
           </div>
         )}
@@ -201,10 +190,9 @@ function ChatModal({ geckoData, onClose }: ChatModalProps) {
             {">>"}
           </button>
         </div>
-
-        </div>
       </div>
-    )
+    </div>
+  )
 }
 
 export { ChatModal }

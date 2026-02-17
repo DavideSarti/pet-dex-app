@@ -5,6 +5,7 @@ import type { AnimalProfile } from "./types"
 import { GridView } from "./grid-view"
 import { PokedexShell } from "./pokedex-shell"
 import { PinScreen } from "./pin-screen"
+import { ChatModal } from "./chat-modal"
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase"
 
 const STORAGE_KEY = "pet-dex-animals"
@@ -273,10 +274,8 @@ export function GeckoDexApp() {
         const maxId = prev.reduce((max, a) => Math.max(max, parseInt(a.id, 10) || 0), 0)
         const id = String(maxId + 1)
 
-        // Find the lowest available dex number
-        const usedNumbers = new Set(prev.map((a) => a.dexNumber))
-        let dexNumber = 1
-        while (usedNumbers.has(dexNumber)) dexNumber++
+        // New animal always gets the next contiguous dex number
+        const dexNumber = prev.length + 1
 
         let newAnimal: AnimalProfile
         if (species === "RHINO BEETLE") {
@@ -321,11 +320,18 @@ export function GeckoDexApp() {
 
   const handleReorder = useCallback(
     (reordered: AnimalProfile[]) => {
-      setAnimals(reordered)
-      scheduleCloudSave(reordered)
+      // Reassign dex numbers to match the new visual order
+      const updated = reordered.map((a, i) => ({ ...a, dexNumber: i + 1 }))
+      setAnimals(updated)
+      scheduleCloudSave(updated)
     },
     [scheduleCloudSave]
   )
+
+  // Chat state
+  const [showChat, setShowChat] = useState(false)
+  const handleOpenChat = useCallback(() => setShowChat(true), [])
+  const handleCloseChat = useCallback(() => setShowChat(false), [])
 
   // Show PIN screen if cloud is enabled but not yet authenticated
   if (cloudEnabled && !ready) {
@@ -338,25 +344,53 @@ export function GeckoDexApp() {
     )
   }
 
+  const chatButton = (
+    <button
+      type="button"
+      onClick={handleOpenChat}
+      className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 px-3 py-2 text-[7px] tracking-wider transition-all text-neutral-400 hover:text-neutral-200"
+      style={{
+        background: "linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%)",
+        borderRadius: "12px",
+        boxShadow: "2px 2px 0px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 12px rgba(139,172,15,0.15)",
+      }}
+      aria-label="Open AI assistant"
+    >
+      <svg width="10" height="10" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
+        <rect x="0" y="1" width="7" height="5" rx="0" />
+        <polygon points="1,6 3,6 1,8" />
+      </svg>
+      <span>PET-AI</span>
+    </button>
+  )
+
   if (selectedAnimal) {
     return (
-      <PokedexShell
-        key={selectedAnimal.id}
-        animal={selectedAnimal}
-        onUpdate={handleUpdate}
-        onBack={handleBack}
-      />
+      <>
+        <PokedexShell
+          key={selectedAnimal.id}
+          animal={selectedAnimal}
+          onUpdate={handleUpdate}
+          onBack={handleBack}
+        />
+        {chatButton}
+        {showChat && <ChatModal animals={animals} onClose={handleCloseChat} />}
+      </>
     )
   }
 
   return (
-    <GridView
-      animals={animals}
-      onSelect={handleSelect}
-      onAdd={handleAdd}
-      onDelete={handleDelete}
-      onReorder={handleReorder}
-      onChangePin={cloudEnabled ? handleChangePin : undefined}
-    />
+    <>
+      <GridView
+        animals={animals}
+        onSelect={handleSelect}
+        onAdd={handleAdd}
+        onDelete={handleDelete}
+        onReorder={handleReorder}
+        onChangePin={cloudEnabled ? handleChangePin : undefined}
+      />
+      {chatButton}
+      {showChat && <ChatModal animals={animals} onClose={handleCloseChat} />}
+    </>
   )
 }

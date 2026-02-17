@@ -125,15 +125,15 @@
 
 /* Scale up screen content for readability */
 .screen-zoom {
-  zoom: 1.63;
+  zoom: 1.79;
 }
 @media (min-width: 480px) {
   .screen-zoom {
-    zoom: 1.75;
+    zoom: 1.93;
   }
 }
 @media (min-width: 768px) {
   .screen-zoom {
-    zoom: 1.63;
+    zoom: 1.79;
   }
 }
