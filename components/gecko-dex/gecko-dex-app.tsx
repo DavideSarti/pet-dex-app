@@ -297,7 +297,9 @@ export function GeckoDexApp() {
   const handleDelete = useCallback(
     (id: string) => {
       setAnimals((prev) => {
-        const updated = prev.filter((a) => a.id !== id)
+        const filtered = prev.filter((a) => a.id !== id)
+        // Reindex dex numbers to stay contiguous (1, 2, 3, ...)
+        const updated = filtered.map((a, i) => ({ ...a, dexNumber: i + 1 }))
         scheduleCloudSave(updated)
         return updated
       })

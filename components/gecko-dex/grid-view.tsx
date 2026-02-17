@@ -208,7 +208,7 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
                       key={animal.id}
                       data-card-idx={idx}
                       onPointerDown={(e) => handlePointerDown(e, animal.id)}
-                      className="relative select-none touch-none"
+                      className={`relative select-none ${isBeingDragged ? "touch-none" : ""}`}
                       style={{
                         zIndex: isBeingDragged ? 50 : 1,
                         pointerEvents: isBeingDragged ? "none" : "auto",

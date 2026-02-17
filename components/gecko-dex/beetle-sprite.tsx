@@ -103,7 +103,6 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           onChange={handlePhotoUpload}
           className="hidden"
         />

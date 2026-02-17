@@ -73,7 +73,7 @@ function WeightRow({ value, onChartOpen }: { value: string; onChartOpen: () => v
   return (
     <div className="flex items-center text-[7px] leading-relaxed">
       <span className="text-gb-light mr-1" aria-hidden="true">{">"}</span>
-      <span className="text-gb-dark w-[90px] shrink-0">WEIGHT:</span>
+      <span className="text-gb-dark w-[70px] shrink-0">WEIGHT:</span>
       <span className="text-gb-light flex-1">{value}</span>
       <button
         type="button"
@@ -94,7 +94,7 @@ function StatRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center text-[7px] leading-relaxed">
       <span className="text-gb-light mr-1" aria-hidden="true">{">"}</span>
-      <span className="text-gb-dark w-[90px] shrink-0">{label}:</span>
+      <span className="text-gb-dark w-[70px] shrink-0">{label}:</span>
       <span className="text-gb-light">{value}</span>
     </div>
   )

@@ -76,7 +76,6 @@ export function GeckoSprite({ customPhoto, onPhotoChange }: GeckoSpriteProps) {
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           onChange={handlePhotoUpload}
           className="hidden"
         />
