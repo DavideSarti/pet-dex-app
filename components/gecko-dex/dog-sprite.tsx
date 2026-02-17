@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import Image from "next/image"
 import {
   Popover,
@@ -8,20 +8,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-import type { BeetleStage } from "./types"
-
-interface BeetleSpriteProps {
-  stage?: BeetleStage
-  subspecies?: string
-  onSubspeciesChange?: (value: string) => void
+interface DogSpriteProps {
   customPhoto?: string
   onPhotoChange?: (dataUrl: string | undefined) => void
 }
 
-export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhoto, onPhotoChange }: BeetleSpriteProps) {
-  const [editingSub, setEditingSub] = useState(false)
-  const [subDraft, setSubDraft] = useState(subspecies ?? "")
-  const subInputRef = useRef<HTMLInputElement>(null)
+export function DogSprite({ customPhoto, onPhotoChange }: DogSpriteProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,19 +46,6 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
     e.target.value = ""
   }
 
-  useEffect(() => {
-    if (editingSub && subInputRef.current) {
-      subInputRef.current.focus()
-      subInputRef.current.select()
-    }
-  }, [editingSub])
-
-  const saveSub = () => {
-    const trimmed = subDraft.trim().toUpperCase()
-    onSubspeciesChange?.(trimmed)
-    setEditingSub(false)
-  }
-
   return (
     <div className="flex flex-col items-center gap-1.5">
       {/* Pixel frame with overlaid buttons */}
@@ -75,11 +54,11 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
           <div className="relative w-[120px] h-[100px] bg-gb-dark flex items-center justify-center overflow-hidden">
             {customPhoto ? (
               /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={customPhoto} alt="Custom beetle photo" className="w-full h-full object-cover" />
+              <img src={customPhoto} alt="Custom dog photo" className="w-full h-full object-cover" />
             ) : (
               <Image
-                src="/images/beetle-sprite.png"
-                alt="Pixel art of a rhino beetle"
+                src="/images/dog-sprite.png"
+                alt="Pixel art of an Alaskan Malamute"
                 width={120}
                 height={100}
                 className="object-contain"
@@ -89,12 +68,6 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
               />
             )}
             <div className="scanlines absolute inset-0 pointer-events-none" aria-hidden="true" />
-            {/* Stage label in bottom-right corner */}
-            {stage && (
-              <span className="absolute bottom-[2px] right-[3px] text-[5px] font-bold tracking-wider text-gb-lightest bg-gb-darkest/70 px-[3px] py-[1px] leading-none">
-                {stage}
-              </span>
-            )}
           </div>
         </div>
 
@@ -135,45 +108,17 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
       </div>
 
       {/* Species label + info button */}
-      <div className="flex flex-col items-center gap-0.5">
-        <div className="flex items-center gap-1.5 text-[6px] text-gb-dark">
-          <span aria-hidden="true">{"*"}</span>
-          <span>RHINO BEETLE</span>
-          <span aria-hidden="true">{"*"}</span>
-          <BeetleSpeciesInfo />
-        </div>
-        {/* Editable subspecies line */}
-        {editingSub ? (
-          <input
-            ref={subInputRef}
-            value={subDraft}
-            onChange={(e) => setSubDraft(e.target.value)}
-            onBlur={saveSub}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") saveSub()
-              if (e.key === "Escape") { setSubDraft(subspecies ?? ""); setEditingSub(false) }
-            }}
-            placeholder="e.g. ALLOMYRINA DICHOTOMA"
-            className="bg-gb-dark/40 text-gb-light border border-gb-light px-1 py-0 text-[5px] font-mono outline-none text-center w-[160px]"
-            maxLength={40}
-            aria-label="Edit subspecies"
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => { setSubDraft(subspecies ?? ""); setEditingSub(true) }}
-            className="text-[5px] text-gb-dark hover:text-gb-light transition-colors tracking-wider italic"
-            title="Click to set species name"
-          >
-            {subspecies || "TAP TO SET SPECIES"}
-          </button>
-        )}
+      <div className="flex items-center gap-1.5 text-[6px] text-gb-dark">
+        <span aria-hidden="true">{"*"}</span>
+        <span>DOG</span>
+        <span aria-hidden="true">{"*"}</span>
+        <DogSpeciesInfo />
       </div>
     </div>
   )
 }
 
-function BeetleSpeciesInfo() {
+function DogSpeciesInfo() {
   const [infoOpen, setInfoOpen] = useState(false)
 
   return (
@@ -193,41 +138,42 @@ function BeetleSpeciesInfo() {
         className="w-[260px] bg-gb-darkest border-gb-dark p-2.5 rounded"
       >
         <div className="text-[7px] text-gb-light mb-2 border-b border-gb-dark pb-1 tracking-wider text-center">
-          DYNASTINAE (RHINOCEROS BEETLES)
+          CANIS LUPUS FAMILIARIS
         </div>
 
         <div className="text-[5px] text-gb-light leading-relaxed space-y-1.5 mb-2">
           <p>
-            Rhinoceros beetles are a subfamily (Dynastinae) of the scarab beetle
-            family (Scarabaeidae). They are among the largest beetles in the world,
-            with some species reaching over 15 cm in length.
+            The domestic dog (Canis lupus familiaris) is the most widely
+            abundant terrestrial carnivore. Descended from wolves, dogs were
+            the first species to be domesticated by humans over 15,000 years ago.
           </p>
           <p>
-            Males are famous for their prominent horns, used in combat with other
-            males over feeding sites and mates. Despite their fearsome appearance,
-            they are completely harmless to humans and cannot bite or sting.
+            Dogs have been selectively bred over millennia for various
+            behaviors, capabilities, and physical attributes. Today there are
+            over 340 recognized breeds varying greatly in size, shape, and
+            temperament.
           </p>
           <p>
-            Found in tropical forests across Asia, Central and South America, and
-            Africa. They go through complete metamorphosis: egg, larva (grub),
-            pupa, and adult. Larvae feed on decaying wood and organic matter,
-            while adults feed on fruit, nectar, and sap.
+            They are highly social animals known for their loyalty, trainability,
+            and ability to form deep bonds with humans. Dogs communicate through
+            vocalizations, body language, and facial expressions.
           </p>
           <p>
-            Popular in some Asian countries as pets, particularly in Japan where
-            beetle keeping (kabuto-mushi) is a traditional hobby. Adults typically
-            live 2-3 months, while the full lifecycle can span 1-2 years.
+            Average lifespan varies by breed: small breeds often live 12-16
+            years, medium breeds 10-14 years, and large/giant breeds 8-12
+            years. Regular vet checkups, vaccinations, and proper nutrition
+            are key to a healthy life.
           </p>
         </div>
 
         <div className="border-t border-gb-dark pt-1.5 text-center">
           <a
-            href="https://en.wikipedia.org/wiki/Dynastinae"
+            href="https://en.wikipedia.org/wiki/Dog"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[5px] text-gb-light hover:text-gb-lightest underline tracking-wider"
           >
-            {">> WIKIPEDIA: RHINOCEROS BEETLE <<"}
+            {">> WIKIPEDIA: DOMESTIC DOG <<"}
           </a>
         </div>
       </PopoverContent>

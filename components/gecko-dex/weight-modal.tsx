@@ -6,11 +6,12 @@ interface WeightModalProps {
   currentWeight: string
   onConfirm: (weight: string) => void
   onCancel: () => void
+  unit?: string
 }
 
-function WeightModal({ currentWeight, onConfirm, onCancel }: WeightModalProps) {
+function WeightModal({ currentWeight, onConfirm, onCancel, unit = "g" }: WeightModalProps) {
   const [digits, setDigits] = useState<string>(
-    currentWeight.replace("g", "")
+    currentWeight.replace(/[a-zA-Z]/g, "")
   )
 
   const handleConfirm = () => {
@@ -18,7 +19,13 @@ function WeightModal({ currentWeight, onConfirm, onCancel }: WeightModalProps) {
   }
 
   const handleDigit = (d: string) => {
-    if (digits.length >= 4) return
+    if (d === ".") {
+      if (digits.includes(".")) return
+      setDigits((prev) => prev + ".")
+      return
+    }
+    const maxLen = unit === "kg" ? 6 : 4
+    if (digits.length >= maxLen) return
     setDigits((prev) => {
       const next = prev === "0" ? d : prev + d
       return next
@@ -33,12 +40,19 @@ function WeightModal({ currentWeight, onConfirm, onCancel }: WeightModalProps) {
     setDigits("0")
   }
 
-  const NUM_KEYS = [
-    ["1", "2", "3"],
-    ["4", "5", "6"],
-    ["7", "8", "9"],
-    ["C", "0", "DEL"],
-  ]
+  const NUM_KEYS = unit === "kg"
+    ? [
+        ["1", "2", "3"],
+        ["4", "5", "6"],
+        ["7", "8", "9"],
+        ["C", "0", ".", "DEL"],
+      ]
+    : [
+        ["1", "2", "3"],
+        ["4", "5", "6"],
+        ["7", "8", "9"],
+        ["C", "0", "DEL"],
+      ]
 
   return (
     <div
@@ -62,7 +76,7 @@ function WeightModal({ currentWeight, onConfirm, onCancel }: WeightModalProps) {
           <span className="text-[12px] text-gb-lightest tracking-widest">
             {digits}
           </span>
-          <span className="text-[7px] text-gb-light">g</span>
+          <span className="text-[7px] text-gb-light">{unit}</span>
         </div>
 
         {/* Number pad */}

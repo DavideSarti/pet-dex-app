@@ -20,17 +20,20 @@ const STAGE_OPTIONS: BeetleStage[] = ["EGG", "LARVA", "PUPA", "ADULT"]
 
 export function BasicInfo({ name, sex, morph, born, species, stage, onUpdate }: BasicInfoProps) {
   const isBeetle = species === "RHINO BEETLE"
+  const isDog = species === "DOG"
 
   return (
     <div className="pixel-border-inset bg-gb-darkest p-2.5">
       <div className="text-[6px] text-gb-dark mb-1.5 border-b border-gb-dark pb-1 tracking-wider">
-        {"--- PROFILE ---"}
+        {"- PROFILE -"}
       </div>
       <div className="flex flex-col gap-1">
         <EditableRow label="NAME" value={name} field="name" onUpdate={onUpdate} />
         <SexRow value={sex} onUpdate={onUpdate} />
         {isBeetle ? (
           <StageRow value={stage ?? "LARVA"} onUpdate={onUpdate} />
+        ) : isDog ? (
+          <EditableRow label="BREED" value={morph} field="morph" onUpdate={onUpdate} />
         ) : (
           <EditableRow label="MORPH" value={morph} field="morph" onUpdate={onUpdate} />
         )}
@@ -57,17 +60,14 @@ function SexRow({
 
   return (
     <>
-      <div className="flex text-[7px] leading-relaxed items-center group">
+      <button
+        type="button"
+        onClick={() => setPicking(true)}
+        className="flex text-[7px] leading-relaxed items-center w-full text-left hover:bg-gb-dark/20 transition-colors -mx-1 px-1 rounded"
+      >
         <span className="text-gb-dark w-16 shrink-0">SEX:</span>
         <span className="text-gb-light truncate flex-1"><SexLabel v={value} /></span>
-        <button
-          onClick={() => setPicking(true)}
-          className="text-gb-dark hover:text-gb-light transition-colors ml-1 shrink-0 opacity-60 hover:opacity-100"
-          aria-label="Edit sex"
-        >
-          <EditIcon />
-        </button>
-      </div>
+      </button>
 
       {picking && (
         <div
@@ -116,17 +116,14 @@ function StageRow({
 
   return (
     <>
-      <div className="flex text-[7px] leading-relaxed items-center group">
+      <button
+        type="button"
+        onClick={() => setPicking(true)}
+        className="flex text-[7px] leading-relaxed items-center w-full text-left hover:bg-gb-dark/20 transition-colors -mx-1 px-1 rounded"
+      >
         <span className="text-gb-dark w-16 shrink-0">STAGE:</span>
         <span className="text-gb-light truncate flex-1">{value}</span>
-        <button
-          onClick={() => setPicking(true)}
-          className="text-gb-dark hover:text-gb-light transition-colors ml-1 shrink-0 opacity-60 hover:opacity-100"
-          aria-label="Edit stage"
-        >
-          <EditIcon />
-        </button>
-      </div>
+      </button>
 
       {picking && (
         <div
@@ -161,6 +158,15 @@ function StageRow({
         </div>
       )}
     </>
+  )
+}
+
+function ReadOnlyRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex text-[7px] leading-relaxed items-center -mx-1 px-1">
+      <span className="text-gb-dark w-16 shrink-0">{label}:</span>
+      <span className="text-gb-light truncate flex-1">{value}</span>
+    </div>
   )
 }
 
@@ -222,25 +228,13 @@ function EditableRow({
   }
 
   return (
-    <div className="flex text-[7px] leading-relaxed items-center group">
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className="flex text-[7px] leading-relaxed items-center w-full text-left hover:bg-gb-dark/20 transition-colors -mx-1 px-1 rounded"
+    >
       <span className="text-gb-dark w-16 shrink-0">{label}:</span>
       <span className="text-gb-light truncate flex-1">{value}</span>
-      <button
-        onClick={() => setEditing(true)}
-        className="text-gb-dark hover:text-gb-light transition-colors ml-1 shrink-0 opacity-60 hover:opacity-100"
-        aria-label={`Edit ${label.toLowerCase()}`}
-      >
-        <EditIcon />
-      </button>
-    </div>
-  )
-}
-
-function EditIcon() {
-  return (
-    <svg width="7" height="7" viewBox="0 0 7 7" fill="currentColor" aria-hidden="true">
-      <path d="M5.5.5L6.5 1.5 2.5 5.5H1.5V4.5L5.5.5Z" />
-      <path d="M0 6.5H7V7H0V6.5Z" />
-    </svg>
+    </button>
   )
 }

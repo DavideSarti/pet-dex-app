@@ -8,7 +8,6 @@ import { PinScreen } from "./pin-screen"
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase"
 
 const STORAGE_KEY = "pet-dex-animals"
-const COUNTERS_KEY = "pet-dex-counters"
 const PIN_KEY = "pet-dex-pin"
 
 const DEFAULT_ANIMAL: AnimalProfile = {
@@ -32,7 +31,7 @@ const DEFAULT_ANIMAL: AnimalProfile = {
   ],
   prescriptions: [],
   weightHistory: [],
-  image: "/images/gecko-sprite.png",
+    image: "/images/gecko-normal.png",
 }
 
 function loadAnimalsLocal(): AnimalProfile[] {
@@ -47,28 +46,10 @@ function loadAnimalsLocal(): AnimalProfile[] {
   return [DEFAULT_ANIMAL]
 }
 
-function loadCountersLocal(): { nextId: number; nextDexNumber: number } {
-  if (typeof window === "undefined") return { nextId: 2, nextDexNumber: 2 }
-  try {
-    const raw = localStorage.getItem(COUNTERS_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      return {
-        nextId: parsed.nextId ?? 2,
-        nextDexNumber: parsed.nextDexNumber ?? 2,
-      }
-    }
-  } catch {}
-  return { nextId: 2, nextDexNumber: 2 }
-}
-
 function loadPinLocal(): string | null {
   if (typeof window === "undefined") return null
   return localStorage.getItem(PIN_KEY)
 }
-
-let nextId = 2
-let nextDexNumber = 2
 
 function makeGeckoDefaults(id: string, dexNumber: number): AnimalProfile {
   return {
@@ -89,7 +70,7 @@ function makeGeckoDefaults(id: string, dexNumber: number): AnimalProfile {
     healthLog: [],
     prescriptions: [],
     weightHistory: [],
-    image: "/images/gecko-sprite.png",
+    image: "/images/gecko-normal.png",
   }
 }
 
@@ -120,6 +101,34 @@ function makeBeetleDefaults(id: string, dexNumber: number): AnimalProfile {
   }
 }
 
+function makeDogDefaults(id: string, dexNumber: number): AnimalProfile {
+  const today = new Date().toISOString().slice(0, 10)
+  return {
+    id,
+    dexNumber,
+    name: "NEW DOG",
+    sex: "?",
+    species: "DOG",
+    morph: "ALASKAN MALAMUTE",
+    breed: "ALASKAN MALAMUTE",
+    born: new Date().toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    }),
+    weight: "0",
+    lastFeed: today,
+    lastShed: today,
+    healthLog: [],
+    prescriptions: [],
+    weightHistory: [],
+    image: "/images/dog-sprite.png",
+    breed: "ALASKAN MALAMUTE",
+    lastVetCheckup: "",
+    nextVaccination: "",
+  }
+}
+
 // ---- Cloud sync helpers ----
 
 async function fetchCloudData(pin: string) {
@@ -138,8 +147,7 @@ async function fetchCloudData(pin: string) {
 
 async function saveToCloud(
   pin: string,
-  animals: AnimalProfile[],
-  counters: { nextId: number; nextDexNumber: number }
+  animals: AnimalProfile[]
 ) {
   const sb = getSupabase()
   if (!sb) return
@@ -148,7 +156,6 @@ async function saveToCloud(
     {
       pin,
       animals: JSON.parse(JSON.stringify(animals)),
-      counters,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "pin" }
@@ -168,20 +175,9 @@ export function GeckoDexApp() {
 
   const [animals, setAnimals] = useState<AnimalProfile[]>(loadAnimalsLocal)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const initialized = useRef(false)
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pinRef = useRef(pin)
   pinRef.current = pin
-
-  // Restore counters on first mount
-  useEffect(() => {
-    if (!initialized.current) {
-      const counters = loadCountersLocal()
-      nextId = counters.nextId
-      nextDexNumber = counters.nextDexNumber
-      initialized.current = true
-    }
-  }, [])
 
   // If cloud is not configured, skip PIN and go straight to localStorage mode
   useEffect(() => {
@@ -204,15 +200,6 @@ export function GeckoDexApp() {
     } catch {}
   }, [animals])
 
-  const saveCountersLocal = useCallback(() => {
-    try {
-      localStorage.setItem(
-        COUNTERS_KEY,
-        JSON.stringify({ nextId, nextDexNumber })
-      )
-    } catch {}
-  }, [])
-
   // Debounced cloud save (waits 500ms after last change)
   const scheduleCloudSave = useCallback(
     (updatedAnimals: AnimalProfile[]) => {
@@ -220,10 +207,7 @@ export function GeckoDexApp() {
       if (saveTimeout.current) clearTimeout(saveTimeout.current)
       saveTimeout.current = setTimeout(async () => {
         try {
-          await saveToCloud(pinRef.current!, updatedAnimals, {
-            nextId,
-            nextDexNumber,
-          })
+          await saveToCloud(pinRef.current!, updatedAnimals)
         } catch (err) {
           console.error("Cloud save failed:", err)
         }
@@ -241,26 +225,14 @@ export function GeckoDexApp() {
 
       if (cloudData) {
         const cloudAnimals = cloudData.animals as AnimalProfile[]
-        const cloudCounters = cloudData.counters as {
-          nextId: number
-          nextDexNumber: number
-        }
         if (Array.isArray(cloudAnimals) && cloudAnimals.length > 0) {
           setAnimals(cloudAnimals)
           localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudAnimals))
         }
-        if (cloudCounters) {
-          nextId = cloudCounters.nextId ?? 2
-          nextDexNumber = cloudCounters.nextDexNumber ?? 2
-          localStorage.setItem(COUNTERS_KEY, JSON.stringify(cloudCounters))
-        }
       } else {
         // First time with this PIN: push current local data to cloud
         const localAnimals = loadAnimalsLocal()
-        await saveToCloud(submittedPin, localAnimals, {
-          nextId,
-          nextDexNumber,
-        })
+        await saveToCloud(submittedPin, localAnimals)
       }
 
       setPin(submittedPin)
@@ -296,20 +268,30 @@ export function GeckoDexApp() {
 
   const handleAdd = useCallback(
     (species: string) => {
-      const id = String(nextId++)
-      const dexNumber = nextDexNumber++
-      const newAnimal =
-        species === "RHINO BEETLE"
-          ? makeBeetleDefaults(id, dexNumber)
-          : makeGeckoDefaults(id, dexNumber)
       setAnimals((prev) => {
+        // Compute next unique id (max existing + 1, always safe)
+        const maxId = prev.reduce((max, a) => Math.max(max, parseInt(a.id, 10) || 0), 0)
+        const id = String(maxId + 1)
+
+        // Find the lowest available dex number
+        const usedNumbers = new Set(prev.map((a) => a.dexNumber))
+        let dexNumber = 1
+        while (usedNumbers.has(dexNumber)) dexNumber++
+
+        let newAnimal: AnimalProfile
+        if (species === "RHINO BEETLE") {
+          newAnimal = makeBeetleDefaults(id, dexNumber)
+        } else if (species === "DOG") {
+          newAnimal = makeDogDefaults(id, dexNumber)
+        } else {
+          newAnimal = makeGeckoDefaults(id, dexNumber)
+        }
         const updated = [...prev, newAnimal]
         scheduleCloudSave(updated)
         return updated
       })
-      saveCountersLocal()
     },
-    [saveCountersLocal, scheduleCloudSave]
+    [scheduleCloudSave]
   )
 
   const handleDelete = useCallback(

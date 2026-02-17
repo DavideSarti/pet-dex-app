@@ -19,13 +19,19 @@ const BEETLE_FILTERS: { value: HealthLogType | "all"; label: string }[] = [
   { value: "substrate", label: "SUB." },
 ]
 
+const DOG_FILTERS: { value: HealthLogType | "all"; label: string }[] = [
+  { value: "all", label: "ALL" },
+  { value: "meds", label: "MEDS" },
+  { value: "vet", label: "VET" },
+]
+
 interface HealthLogProps {
   entries: HealthLogEntry[]
   species?: string
 }
 
 export function HealthLog({ entries, species }: HealthLogProps) {
-  const filters = species === "RHINO BEETLE" ? BEETLE_FILTERS : GECKO_FILTERS
+  const filters = species === "DOG" ? DOG_FILTERS : species === "RHINO BEETLE" ? BEETLE_FILTERS : GECKO_FILTERS
   const [filter, setFilter] = useState<HealthLogType | "all">("all")
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -44,7 +50,7 @@ export function HealthLog({ entries, species }: HealthLogProps) {
     <div className="pixel-border-inset bg-gb-darkest p-2.5 flex flex-col">
       <div className="flex items-center justify-between gap-1.5 mb-1.5 border-b border-gb-dark pb-1">
         <span className="text-[6px] text-gb-dark tracking-wider shrink-0">
-          {"--- RECORDS ---"}
+          {"- RECORDS -"}
         </span>
         <div className="flex gap-0.5 items-center shrink-0 ml-1">
           {filters.map(({ value, label }) => (

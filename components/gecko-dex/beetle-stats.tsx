@@ -44,7 +44,7 @@ export function BeetleStats({
     <>
       <div className="pixel-border-inset bg-gb-darkest p-2.5">
         <div className="text-[6px] text-gb-dark mb-1.5 border-b border-gb-dark pb-1 tracking-wider">
-          {"--- STATS ---"}
+          {"- STATS -"}
         </div>
         <div className="flex flex-col gap-1">
           <StatRow label="STAGE" value={`${STAGE_ICONS[stage]} ${stage}`} />
@@ -71,11 +71,11 @@ function WeightRow({ value, onChartOpen }: { value: string; onChartOpen: () => v
       <button
         type="button"
         onClick={onChartOpen}
-        className="text-gb-dark hover:text-gb-light transition-colors ml-1 shrink-0"
+        className="text-gb-light hover:text-gb-lightest transition-colors ml-1 shrink-0"
         aria-label="View weight chart"
         title="Weight chart"
       >
-        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
+        <svg width="10" height="10" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
           <path d="M0 7h8v1H0zM0 6l2-3 2 1.5L6 1l1.5 2H8V0H6L4 3.5 2 2 0 5z" />
         </svg>
       </button>

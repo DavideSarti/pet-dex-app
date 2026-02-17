@@ -16,6 +16,11 @@ const SPECIES = [
     icon: "🪲",
     label: "Insect",
   },
+  {
+    id: "DOG",
+    icon: "🐕",
+    label: "Canine",
+  },
 ] as const
 
 export function SpeciesPicker({ onSelect, onCancel }: SpeciesPickerProps) {
@@ -32,7 +37,7 @@ export function SpeciesPicker({ onSelect, onCancel }: SpeciesPickerProps) {
           {"== SELECT SPECIES =="}
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {SPECIES.map((sp) => (
             <button
               key={sp.id}

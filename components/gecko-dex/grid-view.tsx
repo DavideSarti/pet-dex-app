@@ -195,7 +195,7 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
 
               {/* Grid of cards */}
               <div
-                className="grid grid-cols-3 gap-2"
+                className="grid grid-cols-2 gap-3"
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
                 onPointerLeave={handlePointerUp}
@@ -237,12 +237,12 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
                 <button
                   type="button"
                   onClick={handleAddClick}
-                  className="aspect-square flex flex-col items-center justify-center gap-1 border-2 border-dashed border-gb-dark hover:border-gb-light bg-gb-dark/10 hover:bg-gb-dark/20 transition-colors group"
+                  className="aspect-square flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gb-dark hover:border-gb-light bg-gb-dark/10 hover:bg-gb-dark/20 transition-colors group"
                 >
-                  <span className="text-[16px] text-gb-dark group-hover:text-gb-light transition-colors leading-none">
+                  <span className="text-[20px] text-gb-dark group-hover:text-gb-light transition-colors leading-none">
                     +
                   </span>
-                  <span className="text-[5px] text-gb-dark group-hover:text-gb-light transition-colors tracking-wider">
+                  <span className="text-[7px] text-gb-dark group-hover:text-gb-light transition-colors tracking-wider">
                     ADD NEW
                   </span>
                 </button>

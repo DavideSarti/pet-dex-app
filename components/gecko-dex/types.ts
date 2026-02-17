@@ -6,13 +6,6 @@ export interface HealthLogEntry {
   text: string
 }
 
-export interface GeckoColors {
-  skin: string
-  dots: string
-  belly: string
-  eyes: string
-}
-
 export interface BeetleColors {
   body: string    // single color; shading is preserved automatically
 }
@@ -52,11 +45,15 @@ export interface AnimalProfile {
   prescriptions: Prescription[]
   weightHistory: WeightEntry[]
   image: string          // path to sprite image
-  colors?: GeckoColors   // gecko color overrides
+  customPhoto?: string   // base64 data URL from camera/gallery
   subspecies?: string    // e.g. "ALLOMYRINA DICHOTOMA"
   // Beetle-specific fields
   beetleColors?: BeetleColors
   stage?: BeetleStage
   substrate?: string           // e.g. "OAK FLAKE SOIL"
   lastSubstrateChange?: string // ISO YYYY-MM-DD
+  // Dog-specific fields
+  breed?: string               // e.g. "ALASKAN MALAMUTE"
+  lastVetCheckup?: string      // ISO YYYY-MM-DD
+  nextVaccination?: string     // ISO YYYY-MM-DD
 }

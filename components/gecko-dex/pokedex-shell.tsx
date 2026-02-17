@@ -2,12 +2,14 @@
 
 import { useState, useCallback, useRef } from "react"
 import { toDDMM } from "@/lib/utils"
-import type { AnimalProfile, HealthLogEntry, GeckoColors, BeetleColors, Prescription, BeetleStage, WeightEntry } from "./types"
-import { GeckoSprite, DEFAULT_COLORS } from "./gecko-sprite"
-import { BeetleSprite, DEFAULT_BEETLE_COLORS } from "./beetle-sprite"
+import type { AnimalProfile, HealthLogEntry, Prescription, BeetleStage, WeightEntry } from "./types"
+import { GeckoSprite } from "./gecko-sprite"
+import { BeetleSprite } from "./beetle-sprite"
+import { DogSprite } from "./dog-sprite"
 import { BasicInfo } from "./basic-info"
 import { StatsGrid } from "./stats-grid"
 import { BeetleStats } from "./beetle-stats"
+import { DogStats } from "./dog-stats"
 import { HealthLog } from "./health-log"
 import { SelectBar } from "./select-bar"
 import { FeedModal, type FeedRow } from "./feed-modal"
@@ -15,10 +17,12 @@ import { WeightModal } from "./weight-modal"
 import { ShedModal } from "./shed-modal"
 import { SubstrateModal } from "./substrate-modal"
 import { MedsModal } from "./meds-modal"
-type ModalType = "feed" | "weight" | "shed" | "meds" | "substrate" | null
+import { VetModal } from "./vet-modal"
+type ModalType = "feed" | "weight" | "shed" | "meds" | "substrate" | "vet" | null
 
 const GECKO_TABS = ["FEED", "WEIGHT", "SHED", "MEDS"]
 const BEETLE_TABS = ["FEED", "WEIGHT", "SUBSTRATE", "MEDS"]
+const DOG_TABS = ["WEIGHT", "VET", "MEDS"]
 
 interface PokedexShellProps {
   animal: AnimalProfile
@@ -28,6 +32,7 @@ interface PokedexShellProps {
 
 export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
   const isBeetle = animal.species === "RHINO BEETLE"
+  const isDog = animal.species === "DOG"
 
   const [healthLog, setHealthLog] = useState<HealthLogEntry[]>(animal.healthLog)
   const [lastAction, setLastAction] = useState<string | null>(null)
@@ -41,16 +46,20 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
   const [geckoSex, setGeckoSex] = useState(animal.sex)
   const [geckoMorph, setGeckoMorph] = useState(animal.morph)
   const [geckoBorn, setGeckoBorn] = useState(animal.born)
-  const [geckoColors, setGeckoColors] = useState<GeckoColors>(animal.colors ?? { ...DEFAULT_COLORS })
   const [prescriptions, setPrescriptions] = useState<Prescription[]>(animal.prescriptions ?? [])
   const [weightHistory, setWeightHistory] = useState<WeightEntry[]>(animal.weightHistory ?? [])
 
   // Beetle-specific state
-  const [beetleColors, setBeetleColors] = useState<BeetleColors>(animal.beetleColors ?? { ...DEFAULT_BEETLE_COLORS })
   const [beetleStage, setBeetleStage] = useState<BeetleStage>(animal.stage ?? "LARVA")
   const [subspecies, setSubspecies] = useState(animal.subspecies ?? "")
+  const [customPhoto, setCustomPhoto] = useState<string | undefined>(animal.customPhoto)
   const [substrate, setSubstrate] = useState(animal.substrate ?? "OAK FLAKE SOIL")
   const [lastSubstrateChange, setLastSubstrateChange] = useState(animal.lastSubstrateChange ?? new Date().toISOString().slice(0, 10))
+
+  // Dog-specific state
+  const [dogBreed, setDogBreed] = useState(animal.breed ?? "ALASKAN MALAMUTE")
+  const [lastVetCheckup, setLastVetCheckup] = useState(animal.lastVetCheckup ?? "")
+  const [nextVaccination, setNextVaccination] = useState(animal.nextVaccination ?? "")
 
   // Refs to track latest values so handlers can read them without nesting setState
   const healthLogRef = useRef(healthLog)
@@ -83,17 +92,20 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
         healthLog,
         prescriptions,
         weightHistory,
-        colors: geckoColors,
+        customPhoto,
         // beetle fields
-        beetleColors,
         stage: beetleStage,
         subspecies,
         substrate,
         lastSubstrateChange,
+        // dog fields
+        breed: dogBreed,
+        lastVetCheckup,
+        nextVaccination,
         ...overrides,
       })
     },
-    [animal, onUpdate, geckoName, geckoSex, geckoMorph, geckoBorn, weight, lastFeed, lastShed, healthLog, prescriptions, weightHistory, geckoColors, beetleColors, beetleStage, subspecies, substrate, lastSubstrateChange]
+    [animal, onUpdate, geckoName, geckoSex, geckoMorph, geckoBorn, weight, lastFeed, lastShed, healthLog, prescriptions, weightHistory, customPhoto, beetleStage, subspecies, substrate, lastSubstrateChange, dogBreed, lastVetCheckup, nextVaccination]
   )
 
   // --- Profile updates ---
@@ -108,7 +120,12 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
         pushUpdate({ sex: sexVal })
       } else if (field === "morph") {
         setGeckoMorph(value)
-        pushUpdate({ morph: value })
+        if (isDog) {
+          setDogBreed(value)
+          pushUpdate({ morph: value, breed: value })
+        } else {
+          pushUpdate({ morph: value })
+        }
       } else if (field === "born") {
         setGeckoBorn(value)
         pushUpdate({ born: value })
@@ -122,20 +139,11 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
     [showAction, pushUpdate]
   )
 
-  // --- Gecko Colors ---
-  const handleColorsChange = useCallback(
-    (newColors: GeckoColors) => {
-      setGeckoColors(newColors)
-      pushUpdate({ colors: newColors })
-    },
-    [pushUpdate]
-  )
-
-  // --- Beetle Colors ---
-  const handleBeetleColorsChange = useCallback(
-    (newColors: BeetleColors) => {
-      setBeetleColors(newColors)
-      pushUpdate({ beetleColors: newColors })
+  // --- Custom Photo ---
+  const handlePhotoChange = useCallback(
+    (dataUrl: string | undefined) => {
+      setCustomPhoto(dataUrl)
+      pushUpdate({ customPhoto: dataUrl })
     },
     [pushUpdate]
   )
@@ -178,10 +186,11 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
 
   const handleWeightConfirm = useCallback(
     (newWeight: string) => {
+      const unit = isDog ? "kg" : "g"
       const newEntry: HealthLogEntry = {
         id: String(Date.now()),
         type: "vet",
-        text: `WEIGHT: ${newWeight}g LOGGED`,
+        text: `WEIGHT: ${newWeight}${unit} LOGGED`,
       }
       const updatedLog = [...healthLogRef.current, newEntry]
       const weightEntry: WeightEntry = { date: getTodayISO(), value: parseFloat(newWeight) || 0 }
@@ -190,10 +199,10 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
       setHealthLog(updatedLog)
       setWeightHistory(updatedHistory)
       pushUpdate({ weight: newWeight, healthLog: updatedLog, weightHistory: updatedHistory })
-      showAction(`WEIGHT: ${newWeight}g`)
+      showAction(`WEIGHT: ${newWeight}${unit}`)
       setActiveModal(null)
     },
-    [showAction, pushUpdate]
+    [showAction, pushUpdate, isDog]
   )
 
   // --- Shed (gecko only) ---
@@ -237,6 +246,44 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
       pushUpdate({ substrate: substrateType, lastSubstrateChange: iso, healthLog: updatedLog })
       showAction(`SUBSTRATE: ${substrateType}!`)
       setActiveModal(null)
+    },
+    [showAction, pushUpdate]
+  )
+
+  // --- Vet ---
+  const openVet = useCallback(() => setActiveModal("vet"), [])
+
+  const handleLogVet = useCallback(
+    (notes: string) => {
+      const iso = getTodayISO()
+      const dateStr = getDateStr()
+      const newEntry: HealthLogEntry = {
+        id: String(Date.now()),
+        type: "vet",
+        text: `VET: ${dateStr} - ${notes}`,
+      }
+      const updatedLog = [...healthLogRef.current, newEntry]
+      setLastVetCheckup(iso)
+      setHealthLog(updatedLog)
+      pushUpdate({ lastVetCheckup: iso, healthLog: updatedLog })
+      showAction(`VET: ${notes}`)
+    },
+    [showAction, pushUpdate]
+  )
+
+  const handleSetVaccination = useCallback(
+    (dateIso: string) => {
+      const dateStr = getDateStr()
+      const newEntry: HealthLogEntry = {
+        id: String(Date.now()),
+        type: "vet",
+        text: `VACC: ${dateStr} - NEXT DUE ${new Date(dateIso).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}`,
+      }
+      const updatedLog = [...healthLogRef.current, newEntry]
+      setNextVaccination(dateIso)
+      setHealthLog(updatedLog)
+      pushUpdate({ nextVaccination: dateIso, healthLog: updatedLog })
+      showAction("VACCINATION DATE SET!")
     },
     [showAction, pushUpdate]
   )
@@ -336,8 +383,9 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
       else if (tab === "SHED") openShed()
       else if (tab === "SUBSTRATE") openSubstrate()
       else if (tab === "MEDS") openMeds()
+      else if (tab === "VET") openVet()
     },
-    [openFeed, openWeight, openShed, openSubstrate, openMeds]
+    [openFeed, openWeight, openShed, openSubstrate, openMeds, openVet]
   )
 
   const titleLabel = "PET-DEX"
@@ -422,16 +470,24 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
               </header>
 
               {/* Sprite frame - species-specific */}
-              {isBeetle ? (
+              {isDog ? (
+                <DogSprite
+                  customPhoto={customPhoto}
+                  onPhotoChange={handlePhotoChange}
+                />
+              ) : isBeetle ? (
                 <BeetleSprite
-                  colors={beetleColors}
-                  onColorsChange={handleBeetleColorsChange}
                   stage={beetleStage}
                   subspecies={subspecies}
                   onSubspeciesChange={handleSubspeciesChange}
+                  customPhoto={customPhoto}
+                  onPhotoChange={handlePhotoChange}
                 />
               ) : (
-                <GeckoSprite colors={geckoColors} onColorsChange={handleColorsChange} />
+                <GeckoSprite
+                  customPhoto={customPhoto}
+                  onPhotoChange={handlePhotoChange}
+                />
               )}
 
               {/* Profile info - now editable */}
@@ -446,7 +502,14 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
               />
 
               {/* Stats - species-specific */}
-              {isBeetle ? (
+              {isDog ? (
+                <DogStats
+                  weight={`${weight}kg`}
+                  lastVetCheckupIso={lastVetCheckup}
+                  nextVaccinationIso={nextVaccination}
+                  weightHistory={weightHistory}
+                />
+              ) : isBeetle ? (
                 <BeetleStats
                   weight={`${weight}g`}
                   lastFeedIso={lastFeed}
@@ -482,7 +545,7 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
 
               {/* Tab buttons - species-specific */}
               <SelectBar
-                tabs={isBeetle ? BEETLE_TABS : GECKO_TABS}
+                tabs={isDog ? DOG_TABS : isBeetle ? BEETLE_TABS : GECKO_TABS}
                 onSelect={handleTabSelect}
               />
             </div>
@@ -499,6 +562,7 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
                 currentWeight={weight}
                 onConfirm={handleWeightConfirm}
                 onCancel={closeModal}
+                unit={isDog ? "kg" : "g"}
               />
             )}
             {activeModal === "shed" && !isBeetle && (
@@ -523,6 +587,15 @@ export function PokedexShell({ animal, onUpdate, onBack }: PokedexShellProps) {
                 onLogDose={handleLogDose}
                 onComplete={handleCompletePrescription}
                 onClose={closeModal}
+              />
+            )}
+            {activeModal === "vet" && isDog && (
+              <VetModal
+                lastVetCheckup={lastVetCheckup}
+                nextVaccination={nextVaccination}
+                onLogVet={handleLogVet}
+                onSetVaccination={handleSetVaccination}
+                onCancel={closeModal}
               />
             )}
           </div>

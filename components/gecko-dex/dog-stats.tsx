@@ -5,22 +5,48 @@ import { toDDMM, daysAgo } from "@/lib/utils"
 import type { WeightEntry } from "./types"
 import { WeightChart } from "./weight-chart"
 
-interface StatsGridProps {
+interface DogStatsProps {
   weight: string
-  lastFeedIso: string
-  lastShedIso: string
+  lastVetCheckupIso: string
+  nextVaccinationIso: string
   weightHistory: WeightEntry[]
 }
 
 function formatDateWithDaysAgo(iso: string): string {
+  if (!iso) return "N/A"
   const d = new Date(iso)
+  if (isNaN(d.getTime())) return "N/A"
   const ddmm = toDDMM(d)
   const days = daysAgo(iso)
   const ago = days === 0 ? "today" : days === 1 ? "1 day ago" : `${days} days ago`
   return `${ddmm} - ${ago}`
 }
 
-export function StatsGrid({ weight, lastFeedIso, lastShedIso, weightHistory }: StatsGridProps) {
+function formatDateWithDaysUntil(iso: string): string {
+  if (!iso) return "NOT SET"
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return "NOT SET"
+  const ddmm = toDDMM(d)
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+  d.setHours(0, 0, 0, 0)
+  const diffMs = d.getTime() - now.getTime()
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+  if (diffDays < 0) {
+    const overdue = Math.abs(diffDays)
+    return `${ddmm} - ${overdue}d OVERDUE!`
+  }
+  if (diffDays === 0) return `${ddmm} - TODAY!`
+  if (diffDays === 1) return `${ddmm} - TOMORROW`
+  return `${ddmm} - in ${diffDays}d`
+}
+
+export function DogStats({
+  weight,
+  lastVetCheckupIso,
+  nextVaccinationIso,
+  weightHistory,
+}: DogStatsProps) {
   const [showChart, setShowChart] = useState(false)
 
   return (
@@ -31,8 +57,8 @@ export function StatsGrid({ weight, lastFeedIso, lastShedIso, weightHistory }: S
         </div>
         <div className="flex flex-col gap-1">
           <WeightRow value={weight} onChartOpen={() => setShowChart(true)} />
-          <StatRow label="LAST FEED" value={formatDateWithDaysAgo(lastFeedIso)} />
-          <StatRow label="LAST SHED" value={formatDateWithDaysAgo(lastShedIso)} />
+          <StatRow label="LAST VET" value={formatDateWithDaysAgo(lastVetCheckupIso)} />
+          <StatRow label="NEXT VACC." value={formatDateWithDaysUntil(nextVaccinationIso)} />
         </div>
       </div>
 
