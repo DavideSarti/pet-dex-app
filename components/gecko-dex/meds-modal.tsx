@@ -55,7 +55,7 @@ export function MedsModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Title */}
-        <div className="text-[7px] text-gb-lightest text-center tracking-wider">
+        <div className="text-[8px] text-gb-lightest text-center tracking-wider">
           {"== MEDICATIONS =="}
         </div>
 
@@ -64,7 +64,7 @@ export function MedsModal({
             {/* Active prescriptions */}
             <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[50vh] pr-0.5">
               {active.length === 0 && (
-                <div className="text-[6px] text-gb-dark text-center py-3">
+                <div className="text-[7px] text-gb-dark text-center py-3">
                   NO ACTIVE PRESCRIPTIONS
                 </div>
               )}
@@ -81,7 +81,7 @@ export function MedsModal({
               {/* Completed section */}
               {completed.length > 0 && (
                 <>
-                  <div className="text-[5px] text-gb-dark tracking-wider border-t border-gb-dark pt-1 mt-1">
+                  <div className="text-[6px] text-gb-dark tracking-wider border-t border-gb-dark pt-1 mt-1">
                     COMPLETED ({completed.length})
                   </div>
                   {completed.map((rx) => (
@@ -89,7 +89,7 @@ export function MedsModal({
                       key={rx.id}
                       className="border border-gb-dark/50 p-1.5 opacity-50"
                     >
-                      <div className="text-[6px] text-gb-dark">
+                      <div className="text-[7px] text-gb-dark">
                         {rx.medName} - {rx.dosesGiven.length}/{rx.totalDays * (rx.dosesPerDay || 1)} DOSES
                       </div>
                     </div>
@@ -102,13 +102,13 @@ export function MedsModal({
             <div className="flex gap-2 mt-1">
               <button
                 onClick={onClose}
-                className="flex-1 text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
+                className="flex-1 text-[8px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
               >
                 CLOSE
               </button>
               <button
                 onClick={() => setView("add")}
-                className="flex-1 text-[7px] text-gb-darkest bg-gb-light hover:bg-gb-lightest py-1.5 transition-colors tracking-wider font-bold"
+                className="flex-1 text-[8px] text-gb-darkest bg-gb-light hover:bg-gb-lightest py-1.5 transition-colors tracking-wider font-bold"
               >
                 + NEW RX
               </button>
@@ -119,49 +119,49 @@ export function MedsModal({
             {/* Add prescription form */}
             <div className="flex flex-col gap-1.5">
               <div className="flex flex-col gap-0.5">
-                <label className="text-[5px] text-gb-dark">MEDICATION NAME</label>
+                <label className="text-[6px] text-gb-dark">MEDICATION NAME</label>
                 <input
                   type="text"
                   value={medName}
                   onChange={(e) => setMedName(e.target.value)}
                   placeholder="e.g. VIT-A DROPS"
-                  className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[6px] px-1.5 py-1 placeholder:text-gb-dark/50 outline-none focus:border-gb-light font-mono"
+                  className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[7px] px-1.5 py-1 placeholder:text-gb-dark/50 outline-none focus:border-gb-light font-mono"
                   autoFocus
                 />
               </div>
 
               <div className="flex flex-col gap-0.5">
-                <label className="text-[5px] text-gb-dark">TOTAL DAYS</label>
+                <label className="text-[6px] text-gb-dark">TOTAL DAYS</label>
                 <input
                   type="text"
                   inputMode="numeric"
                   value={totalDays}
                   onChange={(e) => setTotalDays(e.target.value.replace(/\D/g, ""))}
                   placeholder="e.g. 7"
-                  className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[6px] px-1.5 py-1 placeholder:text-gb-dark/50 outline-none focus:border-gb-light font-mono [appearance:textfield]"
+                  className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[7px] px-1.5 py-1 placeholder:text-gb-dark/50 outline-none focus:border-gb-light font-mono [appearance:textfield]"
                 />
               </div>
 
               <div className="flex flex-col gap-0.5">
-                <label className="text-[5px] text-gb-dark">DOSES PER DAY</label>
+                <label className="text-[6px] text-gb-dark">DOSES PER DAY</label>
                 <input
                   type="text"
                   inputMode="numeric"
                   value={dosesPerDay}
                   onChange={(e) => setDosesPerDay(e.target.value.replace(/\D/g, ""))}
                   placeholder="1"
-                  className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[6px] px-1.5 py-1 placeholder:text-gb-dark/50 outline-none focus:border-gb-light font-mono [appearance:textfield]"
+                  className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[7px] px-1.5 py-1 placeholder:text-gb-dark/50 outline-none focus:border-gb-light font-mono [appearance:textfield]"
                 />
               </div>
 
               <div className="flex flex-col gap-0.5">
-                <label className="text-[5px] text-gb-dark">NOTES (optional)</label>
+                <label className="text-[6px] text-gb-dark">NOTES (optional)</label>
                 <input
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g. 2 drops daily"
-                  className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[6px] px-1.5 py-1 placeholder:text-gb-dark/50 outline-none focus:border-gb-light font-mono"
+                  className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[7px] px-1.5 py-1 placeholder:text-gb-dark/50 outline-none focus:border-gb-light font-mono"
                 />
               </div>
             </div>
@@ -169,13 +169,13 @@ export function MedsModal({
             <div className="flex gap-2 mt-1">
               <button
                 onClick={() => setView("list")}
-                className="flex-1 text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
+                className="flex-1 text-[8px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
               >
                 CANCEL
               </button>
               <button
                 onClick={handleCreate}
-                className="flex-1 text-[7px] text-gb-darkest bg-gb-light hover:bg-gb-lightest py-1.5 transition-colors tracking-wider font-bold"
+                className="flex-1 text-[8px] text-gb-darkest bg-gb-light hover:bg-gb-lightest py-1.5 transition-colors tracking-wider font-bold"
               >
                 CREATE RX
               </button>
@@ -209,16 +209,16 @@ function PrescriptionCard({
     <div className="border border-gb-dark p-1.5 flex flex-col gap-1">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="text-[7px] text-gb-lightest tracking-wider font-bold">
+        <div className="text-[8px] text-gb-lightest tracking-wider font-bold">
           {rx.medName}
         </div>
-        <div className="text-[5px] text-gb-dark">
+        <div className="text-[6px] text-gb-dark">
           SINCE {rx.startDate.slice(8)}/{rx.startDate.slice(5, 7)}
         </div>
       </div>
 
       {/* Info line */}
-      <div className="text-[5px] text-gb-dark">
+      <div className="text-[6px] text-gb-dark">
         {perDay > 1 ? `${perDay}x/DAY` : "1x/DAY"} · {rx.totalDays} DAYS
         {rx.notes ? ` · ${rx.notes}` : ""}
       </div>
@@ -231,13 +231,13 @@ function PrescriptionCard({
             style={{ width: `${progressPct}%` }}
           />
         </div>
-        <span className="text-[5px] text-gb-light shrink-0">
+        <span className="text-[6px] text-gb-light shrink-0">
           {rx.dosesGiven.length}/{totalDoses}
         </span>
       </div>
 
       {/* Days left info */}
-      <div className="text-[6px] text-gb-light">
+      <div className="text-[7px] text-gb-light">
         {dosesLeft > 0 ? (
           <>
             <span className="text-gb-lightest font-bold">{dosesLeft}</span>
@@ -258,7 +258,7 @@ function PrescriptionCard({
         <button
           onClick={() => onLogDose(rx.id)}
           disabled={allDoneToday || dosesLeft <= 0}
-          className={`flex-1 text-[6px] py-1 border transition-colors tracking-wider ${
+          className={`flex-1 text-[7px] py-1 border transition-colors tracking-wider ${
             allDoneToday || dosesLeft <= 0
               ? "border-gb-dark/50 text-gb-dark/50 cursor-not-allowed"
               : "border-gb-light text-gb-darkest bg-gb-light hover:bg-gb-lightest font-bold"
@@ -269,7 +269,7 @@ function PrescriptionCard({
         {dosesLeft > 0 && (
           <button
             onClick={() => onComplete(rx.id)}
-            className="text-[6px] px-2 py-1 border border-gb-dark text-gb-dark hover:text-gb-light hover:border-gb-light transition-colors tracking-wider"
+            className="text-[7px] px-2 py-1 border border-gb-dark text-gb-dark hover:text-gb-light hover:border-gb-light transition-colors tracking-wider"
           >
             END
           </button>

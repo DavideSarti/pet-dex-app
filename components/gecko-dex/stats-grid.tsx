@@ -26,7 +26,7 @@ export function StatsGrid({ weight, lastFeedIso, lastShedIso, weightHistory }: S
   return (
     <>
       <div className="pixel-border-inset bg-gb-darkest p-2.5">
-        <div className="text-[6px] text-gb-dark mb-1.5 border-b border-gb-dark pb-1 tracking-wider">
+        <div className="text-[7px] text-gb-dark mb-1.5 border-b border-gb-dark pb-1 tracking-wider">
           {"- STATS -"}
         </div>
         <div className="flex flex-col gap-1">
@@ -45,9 +45,9 @@ export function StatsGrid({ weight, lastFeedIso, lastShedIso, weightHistory }: S
 
 function WeightRow({ value, onChartOpen }: { value: string; onChartOpen: () => void }) {
   return (
-    <div className="flex items-center text-[7px] leading-relaxed">
+    <div className="flex items-center text-[8px] leading-relaxed">
       <span className="text-gb-light mr-1" aria-hidden="true">{">"}</span>
-      <span className="text-gb-dark w-[55px] shrink-0">WEIGHT:</span>
+      <span className="text-gb-dark w-[60px] shrink-0">WEIGHT:</span>
       <span className="text-gb-light flex-1">{value}</span>
       <button
         type="button"
@@ -56,7 +56,7 @@ function WeightRow({ value, onChartOpen }: { value: string; onChartOpen: () => v
         aria-label="View weight chart"
         title="Weight chart"
       >
-        <svg width="15" height="15" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
           <path d="M0 7h8v1H0zM0 6l2-3 2 1.5L6 1l1.5 2H8V0H6L4 3.5 2 2 0 5z" />
         </svg>
       </button>
@@ -66,9 +66,9 @@ function WeightRow({ value, onChartOpen }: { value: string; onChartOpen: () => v
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center text-[7px] leading-relaxed">
+    <div className="flex items-center text-[8px] leading-relaxed">
       <span className="text-gb-light mr-1" aria-hidden="true">{">"}</span>
-      <span className="text-gb-dark w-[55px] shrink-0">{label}:</span>
+      <span className="text-gb-dark w-[60px] shrink-0">{label}:</span>
       <span className="text-gb-light">{value}</span>
     </div>
   )

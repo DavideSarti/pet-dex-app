@@ -21,15 +21,15 @@ export function WeightChart({ history, onClose }: WeightChartProps) {
           className="w-full max-w-[320px] pixel-border bg-gb-darkest p-4 flex flex-col gap-3"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="text-[7px] text-gb-lightest text-center tracking-wider">
+          <div className="text-[8px] text-gb-lightest text-center tracking-wider">
             {"== WEIGHT HISTORY =="}
           </div>
-          <div className="text-[6px] text-gb-dark text-center py-4">
+          <div className="text-[7px] text-gb-dark text-center py-4">
             NO DATA YET. LOG A WEIGHT TO SEE THE CHART.
           </div>
           <button
             onClick={onClose}
-            className="text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
+            className="text-[8px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
           >
             CLOSE
           </button>
@@ -89,7 +89,7 @@ export function WeightChart({ history, onClose }: WeightChartProps) {
         className="w-full max-w-[320px] pixel-border bg-gb-darkest p-3 flex flex-col gap-2"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-[7px] text-gb-lightest text-center tracking-wider">
+        <div className="text-[8px] text-gb-lightest text-center tracking-wider">
           {"== WEIGHT HISTORY =="}
         </div>
 
@@ -199,13 +199,13 @@ export function WeightChart({ history, onClose }: WeightChartProps) {
         </div>
 
         {/* Entry count */}
-        <div className="text-[5px] text-gb-dark text-center tracking-wider">
+        <div className="text-[6px] text-gb-dark text-center tracking-wider">
           {sorted.length} MEASUREMENT{sorted.length !== 1 ? "S" : ""}
         </div>
 
         <button
           onClick={onClose}
-          className="text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
+          className="text-[8px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
         >
           CLOSE
         </button>

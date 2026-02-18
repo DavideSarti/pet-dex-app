@@ -222,22 +222,22 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
             />
 
             {/* Screen content - scrollable */}
-            <div className="relative p-3 flex flex-col gap-2.5 animate-flicker h-full overflow-y-auto screen-zoom">
+            <div className="relative p-3 flex flex-col gap-2.5 animate-flicker h-full overflow-y-auto">
               {/* Title bar */}
               <header className="text-center">
-                <div className="text-[6px] text-gb-dark">
+                <div className="text-[7px] text-gb-dark">
                   {"+--------------------------+"}
                 </div>
-                <h1 className="text-[9px] text-gb-lightest tracking-[0.15em] py-0.5">
+                <h1 className="text-[10px] text-gb-lightest tracking-[0.15em] py-0.5">
                   PET-DEX
                 </h1>
-                <div className="text-[6px] text-gb-dark">
+                <div className="text-[7px] text-gb-dark">
                   {"+--------------------------+"}
                 </div>
               </header>
 
               {/* Info line */}
-              <div className="text-[6px] text-gb-light text-center tracking-wider">
+              <div className="text-[7px] text-gb-light text-center tracking-wider">
                 {animals.length === 0
                   ? "NO ANIMALS YET - TAP + TO ADD"
                   : `${animals.length} ANIMAL${animals.length > 1 ? "S" : ""} REGISTERED`}
@@ -290,10 +290,10 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
                   onClick={handleAddClick}
                   className="aspect-square flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gb-dark hover:border-gb-light bg-gb-dark/10 hover:bg-gb-dark/20 transition-colors group"
                 >
-                  <span className="text-[20px] text-gb-dark group-hover:text-gb-light transition-colors leading-none">
+                  <span className="text-[22px] text-gb-dark group-hover:text-gb-light transition-colors leading-none">
                     +
                   </span>
-                  <span className="text-[7px] text-gb-dark group-hover:text-gb-light transition-colors tracking-wider">
+                  <span className="text-[8px] text-gb-dark group-hover:text-gb-light transition-colors tracking-wider">
                     ADD NEW
                   </span>
                 </button>

@@ -71,7 +71,7 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
         <div className="w-full max-w-[340px] pixel-border bg-gb-darkest p-4 flex flex-col items-center gap-3">
-          <div className="text-gb-lightest text-[8px] animate-pulse tracking-wider">
+          <div className="text-gb-lightest text-[9px] animate-pulse tracking-wider">
             {"~~ SHED LOGGED ~~"}
           </div>
 
@@ -80,7 +80,7 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
             {Array.from({ length: 8 }).map((_, i) => (
               <span
                 key={i}
-                className="absolute text-[10px] text-gb-light animate-bounce"
+                className="absolute text-[11px] text-gb-light animate-bounce"
                 style={{
                   left: `${10 + i * 11}%`,
                   top: `${i % 2 === 0 ? 0 : 30}%`,
@@ -96,7 +96,7 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
             </span>
           </div>
 
-          <div className="text-[6px] text-gb-dark">
+          <div className="text-[7px] text-gb-dark">
             {"QUALITY: "}
             <span
               className={
@@ -116,7 +116,7 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
             {Array.from({ length: 6 }).map((_, i) => (
               <span
                 key={i}
-                className="text-[8px] text-gb-dark animate-bounce"
+                className="text-[9px] text-gb-dark animate-bounce"
                 style={{
                   animationDelay: `${i * 120}ms`,
                   animationDuration: "0.8s",
@@ -143,7 +143,7 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Title */}
-        <div className="text-[7px] text-gb-lightest text-center tracking-wider">
+        <div className="text-[8px] text-gb-lightest text-center tracking-wider">
           {"== SHED TRACKER =="}
         </div>
 
@@ -152,7 +152,7 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
           {shedFrames[animFrame].map((line, i) => (
             <div
               key={i}
-              className="text-[5px] text-gb-light whitespace-pre font-mono leading-tight"
+              className="text-[6px] text-gb-light whitespace-pre font-mono leading-tight"
             >
               {line}
             </div>
@@ -161,7 +161,7 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
 
         {/* Days counter + progress */}
         <div className="flex flex-col gap-1 items-center">
-          <div className="text-[5px] text-gb-dark tracking-wider">
+          <div className="text-[6px] text-gb-dark tracking-wider">
             DAYS SINCE LAST SHED
           </div>
           <div className="text-[14px] text-gb-lightest leading-none">
@@ -171,12 +171,12 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
 
         {/* Progress bar */}
         <div className="flex items-center gap-1 justify-center">
-          <span className="text-[5px] text-gb-dark">{"["}</span>
+          <span className="text-[6px] text-gb-dark">{"["}</span>
           <div className="flex">
             {Array.from({ length: barWidth }).map((_, i) => (
               <span
                 key={i}
-                className={`text-[6px] ${
+                className={`text-[7px] ${
                   i < filled ? "text-gb-light" : "text-gb-dark"
                 }`}
               >
@@ -184,24 +184,24 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
               </span>
             ))}
           </div>
-          <span className="text-[5px] text-gb-dark">{"]"}</span>
-          <span className="text-[5px] text-gb-light">
+          <span className="text-[6px] text-gb-dark">{"]"}</span>
+          <span className="text-[6px] text-gb-light">
             {Math.round(progress * 100)}%
           </span>
         </div>
 
         {/* Quality selector */}
         <div className="flex items-center gap-1 justify-center">
-          <span className="text-[5px] text-gb-dark">QUALITY:</span>
+          <span className="text-[6px] text-gb-dark">QUALITY:</span>
           <button
             onClick={() => cycleQuality(-1)}
-            className="text-[8px] text-gb-dark hover:text-gb-light px-1"
+            className="text-[9px] text-gb-dark hover:text-gb-light px-1"
             aria-label="Previous quality"
           >
             {"<"}
           </button>
           <div
-            className={`text-[7px] px-2 py-0.5 border text-center min-w-[72px] ${
+            className={`text-[8px] px-2 py-0.5 border text-center min-w-[72px] ${
               quality === "CLEAN"
                 ? "text-gb-lightest border-gb-light"
                 : quality === "PARTIAL"
@@ -213,7 +213,7 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
           </div>
           <button
             onClick={() => cycleQuality(1)}
-            className="text-[8px] text-gb-dark hover:text-gb-light px-1"
+            className="text-[9px] text-gb-dark hover:text-gb-light px-1"
             aria-label="Next quality"
           >
             {">"}
@@ -224,13 +224,13 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
         <div className="flex gap-2 mt-0.5">
           <button
             onClick={onCancel}
-            className="flex-1 text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
+            className="flex-1 text-[8px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
           >
             CANCEL
           </button>
           <button
             onClick={() => setConfirmed(true)}
-            className="flex-1 text-[7px] text-gb-darkest bg-gb-light hover:bg-gb-lightest py-1.5 transition-colors tracking-wider font-bold"
+            className="flex-1 text-[8px] text-gb-darkest bg-gb-light hover:bg-gb-lightest py-1.5 transition-colors tracking-wider font-bold"
           >
             LOG SHED
           </button>

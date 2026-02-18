@@ -74,12 +74,12 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
       <div className="w-full max-w-[340px] max-h-[80vh] flex flex-col bg-gb-darkest p-2 pixel-border" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-1 pb-1.5 border-b border-gb-dark">
-          <div className="text-[7px] text-gb-lightest tracking-wider">
+          <div className="text-[8px] text-gb-lightest tracking-wider">
             {"== PET-AI =="}
           </div>
           <button
             onClick={onClose}
-            className="text-[7px] text-gb-dark hover:text-gb-light transition-colors"
+            className="text-[8px] text-gb-dark hover:text-gb-light transition-colors"
             aria-label="Close chat"
           >
             {"[X]"}
@@ -88,12 +88,12 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
 
         {/* API error */}
         {error && (
-          <div className="mx-1.5 mb-1.5 rounded border border-red-900/50 bg-red-950/30 px-2 py-1.5 text-[6px] text-red-300">
+          <div className="mx-1.5 mb-1.5 rounded border border-red-900/50 bg-red-950/30 px-2 py-1.5 text-[7px] text-red-300">
             <span className="font-bold">SETUP NEEDED</span>
-            <div className="mt-1 text-[5px] text-red-200 leading-relaxed">
+            <div className="mt-1 text-[6px] text-red-200 leading-relaxed">
               Chat needs a Gemini API key. Do this once:
             </div>
-            <ol className="mt-1 text-[5px] text-red-400 list-decimal list-inside space-y-0.5">
+            <ol className="mt-1 text-[6px] text-red-400 list-decimal list-inside space-y-0.5">
               <li>Get a key: aistudio.google.com → API keys → Create</li>
               <li>Open file: .env.local (same folder as package.json)</li>
               <li>Add: GOOGLE_GENERATIVE_AI_API_KEY=your-key-here</li>
@@ -102,7 +102,7 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
             <button
               type="button"
               onClick={() => clearError()}
-              className="mt-1 text-[5px] text-gb-light underline"
+              className="mt-1 text-[6px] text-gb-light underline"
             >
               {"[DISMISS]"}
             </button>
@@ -111,7 +111,7 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
 
         {/* Welcome hint */}
         {messages.length === 0 && !error && (
-          <div className="px-1 py-2 text-[5px] text-gb-dark text-center leading-relaxed">
+          <div className="px-1 py-2 text-[6px] text-gb-dark text-center leading-relaxed">
             {"ASK ME ANYTHING ABOUT"}<br />
             {"YOUR PET COLLECTION!"}<br />
             <span className="text-gb-dark/60">
@@ -138,13 +138,13 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
             return (
               <div
                 key={msg.id}
-                className={`text-[6px] leading-relaxed px-1.5 py-1 ${
+                className={`text-[7px] leading-relaxed px-1.5 py-1 ${
                   isUser
                     ? "bg-gb-dark/30 text-gb-light self-end max-w-[85%]"
                     : "bg-gb-dark/15 text-gb-lightest self-start max-w-[90%]"
                 } border ${isUser ? "border-gb-dark" : "border-gb-dark/50"}`}
               >
-                <span className="text-gb-dark text-[5px]">
+                <span className="text-gb-dark text-[6px]">
                   {isUser ? "YOU> " : "AI> "}
                 </span>
                 {text}
@@ -153,7 +153,7 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
           })}
 
           {isLoading && messages.length > 0 && (
-            <div className="text-[6px] text-gb-dark px-1.5 self-start">
+            <div className="text-[7px] text-gb-dark px-1.5 self-start">
               <span className="animate-blink">{"..."}</span>
             </div>
           )}
@@ -161,7 +161,7 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
 
         {/* Input */}
         <div className="flex items-center gap-1 pt-1.5 border-t border-gb-dark">
-          <span className="text-[6px] text-gb-dark shrink-0">{">"}</span>
+          <span className="text-[7px] text-gb-dark shrink-0">{">"}</span>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -169,14 +169,14 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
               if (e.key === "Enter") handleSubmit()
             }}
             placeholder="TYPE HERE..."
-            className="flex-1 bg-gb-dark/20 text-gb-lightest border border-gb-dark text-[6px] px-1.5 py-1 font-mono outline-none placeholder:text-gb-dark/50 focus:border-gb-light min-w-0"
+            className="flex-1 bg-gb-dark/20 text-gb-lightest border border-gb-dark text-[7px] px-1.5 py-1 font-mono outline-none placeholder:text-gb-dark/50 focus:border-gb-light min-w-0"
             disabled={isLoading}
             aria-label="Chat message input"
           />
           <button
             onClick={handleSubmit}
             disabled={isLoading || !input.trim()}
-            className="text-[6px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light px-1.5 py-1 transition-colors disabled:opacity-30"
+            className="text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light px-1.5 py-1 transition-colors disabled:opacity-30"
             aria-label="Send message"
           >
             {">>"}

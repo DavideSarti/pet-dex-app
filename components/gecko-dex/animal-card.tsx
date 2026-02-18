@@ -36,14 +36,14 @@ export function AnimalCard({ animal, onSelect, onDelete }: AnimalCardProps) {
               setShowConfirm(true)
             }
           }}
-          className="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center text-[9px] text-gb-dark hover:text-red-400 transition-colors z-10"
+          className="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center text-[10px] text-gb-dark hover:text-red-400 transition-colors z-10"
           aria-label={`Delete ${animal.name}`}
         >
           X
         </span>
 
         {/* Dex number */}
-        <div className="text-[7px] text-gb-dark tracking-wider w-full text-left">
+        <div className="text-[8px] text-gb-dark tracking-wider w-full text-left">
           #{String(animal.dexNumber).padStart(3, "0")}
         </div>
 
@@ -67,19 +67,19 @@ export function AnimalCard({ animal, onSelect, onDelete }: AnimalCardProps) {
           )}
           {/* Stage label for beetles */}
           {isBeetle && animal.stage && (
-            <span className="absolute bottom-[2px] right-[3px] text-[6px] font-bold tracking-wider text-gb-lightest bg-gb-darkest/70 px-[3px] py-[1px] leading-none">
+            <span className="absolute bottom-[2px] right-[3px] text-[7px] font-bold tracking-wider text-gb-lightest bg-gb-darkest/70 px-[3px] py-[1px] leading-none">
               {animal.stage}
             </span>
           )}
         </div>
 
         {/* Name */}
-        <div className="text-[9px] text-gb-lightest tracking-wider text-center truncate w-full">
+        <div className="text-[10px] text-gb-lightest tracking-wider text-center truncate w-full">
           {animal.name}
         </div>
 
         {/* Species */}
-        <div className="text-[7px] text-gb-dark tracking-wider text-center truncate w-full">
+        <div className="text-[8px] text-gb-dark tracking-wider text-center w-full leading-tight">
           {animal.species}
         </div>
       </button>
@@ -94,10 +94,10 @@ export function AnimalCard({ animal, onSelect, onDelete }: AnimalCardProps) {
             className="w-full max-w-[300px] pixel-border bg-gb-darkest p-5 flex flex-col gap-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-[10px] text-gb-lightest text-center tracking-wider">
+            <div className="text-[11px] text-gb-lightest text-center tracking-wider">
               {"== DELETE? =="}
             </div>
-            <div className="text-[8px] text-gb-light text-center leading-relaxed">
+            <div className="text-[9px] text-gb-light text-center leading-relaxed">
               Remove <span className="text-gb-lightest">{animal.name}</span> from your collection?
               <br />
               <span className="text-gb-dark">This cannot be undone.</span>
@@ -105,7 +105,7 @@ export function AnimalCard({ animal, onSelect, onDelete }: AnimalCardProps) {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 text-[9px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-2 transition-colors tracking-wider"
+                className="flex-1 text-[10px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-2 transition-colors tracking-wider"
               >
                 CANCEL
               </button>
@@ -114,7 +114,7 @@ export function AnimalCard({ animal, onSelect, onDelete }: AnimalCardProps) {
                   setShowConfirm(false)
                   onDelete(animal.id)
                 }}
-                className="flex-1 text-[9px] text-red-300 bg-red-950/50 hover:bg-red-900/60 border border-red-800 py-2 transition-colors tracking-wider font-bold"
+                className="flex-1 text-[10px] text-red-300 bg-red-950/50 hover:bg-red-900/60 border border-red-800 py-2 transition-colors tracking-wider font-bold"
               >
                 DELETE
               </button>

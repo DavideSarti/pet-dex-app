@@ -72,7 +72,7 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
       {/* Pixel frame with overlaid buttons */}
       <div className="relative">
         <div className="pixel-border bg-gb-darkest p-[3px]">
-          <div className="relative w-[100px] h-[83px] bg-gb-dark flex items-center justify-center overflow-hidden">
+          <div className="relative w-[147px] h-[124px] bg-gb-dark flex items-center justify-center overflow-hidden">
             {customPhoto ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={customPhoto} alt="Custom beetle photo" className="w-full h-full object-cover" />
@@ -80,8 +80,8 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
               <Image
                 src="/images/beetle-sprite.png"
                 alt="Pixel art of a rhino beetle"
-                width={100}
-                height={83}
+                width={147}
+                height={124}
                 className="object-contain"
                 style={{ imageRendering: "pixelated" }}
                 priority
@@ -91,7 +91,7 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
             <div className="scanlines absolute inset-0 pointer-events-none" aria-hidden="true" />
             {/* Stage label in bottom-right corner */}
             {stage && (
-              <span className="absolute bottom-[2px] right-[3px] text-[5px] font-bold tracking-wider text-gb-lightest bg-gb-darkest/70 px-[3px] py-[1px] leading-none">
+              <span className="absolute bottom-[4px] right-[6px] text-[6px] font-bold tracking-wider text-gb-lightest bg-gb-darkest/70 px-[6px] py-[2px] leading-none">
                 {stage}
               </span>
             )}
@@ -108,7 +108,7 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
         />
 
         {/* Buttons overlaid on the right edge */}
-        <div className="absolute -right-7 top-0 flex flex-col gap-1">
+        <div className="absolute -right-8 top-0 flex flex-col gap-1">
           {/* Photo upload button */}
           <button
             type="button"
@@ -116,7 +116,7 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
             className="flex items-center justify-center w-6 h-6 rounded border border-gb-dark hover:border-gb-light bg-gb-darkest/80 hover:bg-gb-dark/50 text-gb-dark hover:text-gb-light transition-colors"
             aria-label="Upload photo"
           >
-            <span className="text-[10px]" aria-hidden="true">📷</span>
+            <span className="text-[11px]" aria-hidden="true">📷</span>
           </button>
 
           {/* Remove photo button */}
@@ -127,7 +127,7 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
               className="flex items-center justify-center w-6 h-6 rounded border border-gb-dark hover:border-gb-light bg-gb-darkest/80 hover:bg-gb-dark/50 text-gb-dark hover:text-gb-light transition-colors"
               aria-label="Remove photo"
             >
-              <span className="text-[8px]" aria-hidden="true">↩</span>
+              <span className="text-[14px]" aria-hidden="true">↩</span>
             </button>
           )}
         </div>
@@ -135,7 +135,7 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
 
       {/* Species label + info button */}
       <div className="flex flex-col items-center gap-0.5">
-        <div className="flex items-center gap-1.5 text-[6px] text-gb-dark">
+        <div className="flex items-center gap-1.5 text-[7px] text-gb-dark">
           <span aria-hidden="true">{"*"}</span>
           <span>RHINO BEETLE</span>
           <span aria-hidden="true">{"*"}</span>
@@ -153,7 +153,7 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
               if (e.key === "Escape") { setSubDraft(subspecies ?? ""); setEditingSub(false) }
             }}
             placeholder="e.g. ALLOMYRINA DICHOTOMA"
-            className="bg-gb-dark/40 text-gb-light border border-gb-light px-1 py-0 text-[5px] font-mono outline-none text-center w-[160px]"
+            className="bg-gb-dark/40 text-gb-light border border-gb-light px-1 py-0 text-[6px] font-mono outline-none text-center w-[172px]"
             maxLength={40}
             aria-label="Edit subspecies"
           />
@@ -161,7 +161,7 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
           <button
             type="button"
             onClick={() => { setSubDraft(subspecies ?? ""); setEditingSub(true) }}
-            className="text-[5px] text-gb-dark hover:text-gb-light transition-colors tracking-wider italic"
+            className="text-[6px] text-gb-dark hover:text-gb-light transition-colors tracking-wider italic"
             title="Click to set species name"
           >
             {subspecies || "TAP TO SET SPECIES"}
@@ -180,7 +180,7 @@ function BeetleSpeciesInfo() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex items-center justify-center w-3.5 h-3.5 rounded-full border border-gb-dark hover:border-gb-light text-gb-dark hover:text-gb-light text-[5px] font-bold leading-none transition-colors"
+          className="flex items-center justify-center w-3.5 h-3.5 rounded-full border border-gb-dark hover:border-gb-light text-gb-dark hover:text-gb-light text-[6px] font-bold leading-none transition-colors"
           aria-label="Species information"
         >
           i
@@ -189,13 +189,13 @@ function BeetleSpeciesInfo() {
       <PopoverContent
         align="center"
         side="bottom"
-        className="w-[260px] bg-gb-darkest border-gb-dark p-2.5 rounded"
+        className="w-[200px] bg-gb-darkest border-gb-dark p-2.5 rounded"
       >
-        <div className="text-[7px] text-gb-light mb-2 border-b border-gb-dark pb-1 tracking-wider text-center">
+        <div className="text-[8px] text-gb-light mb-2 border-b border-gb-dark pb-1 tracking-wider text-center">
           DYNASTINAE (RHINOCEROS BEETLES)
         </div>
 
-        <div className="text-[5px] text-gb-light leading-relaxed space-y-1.5 mb-2">
+        <div className="text-[6px] text-gb-light leading-relaxed space-y-1.5 mb-2">
           <p>
             Rhinoceros beetles are a subfamily (Dynastinae) of the scarab beetle
             family (Scarabaeidae). They are among the largest beetles in the world,
@@ -224,7 +224,7 @@ function BeetleSpeciesInfo() {
             href="https://en.wikipedia.org/wiki/Dynastinae"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[5px] text-gb-light hover:text-gb-lightest underline tracking-wider"
+            className="text-[6px] text-gb-light hover:text-gb-lightest underline tracking-wider"
           >
             {">> WIKIPEDIA: RHINOCEROS BEETLE <<"}
           </a>

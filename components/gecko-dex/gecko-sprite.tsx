@@ -47,11 +47,11 @@ export function GeckoSprite({ customPhoto, onPhotoChange }: GeckoSpriteProps) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-1.5">
+    <div className="flex flex-col items-center gap-1.5 -mb-1">
       {/* Pixel frame with overlaid buttons */}
       <div className="relative">
         <div className="pixel-border bg-gb-darkest p-[3px]">
-          <div className="relative w-[100px] h-[83px] bg-gb-dark flex items-center justify-center overflow-hidden">
+          <div className="relative w-[147px] h-[124px] bg-gb-dark flex items-center justify-center overflow-hidden">
             {customPhoto ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={customPhoto} alt="Custom animal photo" className="w-full h-full object-cover" />
@@ -59,8 +59,8 @@ export function GeckoSprite({ customPhoto, onPhotoChange }: GeckoSpriteProps) {
               <Image
                 src="/images/gecko-normal.png"
                 alt="Pixel art of a leopard gecko"
-                width={100}
-                height={83}
+                width={147}
+                height={124}
                 className="object-contain"
                 style={{ imageRendering: "pixelated" }}
                 priority
@@ -81,7 +81,7 @@ export function GeckoSprite({ customPhoto, onPhotoChange }: GeckoSpriteProps) {
         />
 
         {/* Buttons overlaid on the right edge */}
-        <div className="absolute -right-7 top-0 flex flex-col gap-1">
+        <div className="absolute -right-8 top-0 flex flex-col gap-1">
           {/* Photo upload button */}
           <button
             type="button"
@@ -89,7 +89,7 @@ export function GeckoSprite({ customPhoto, onPhotoChange }: GeckoSpriteProps) {
             className="flex items-center justify-center w-6 h-6 rounded border border-gb-dark hover:border-gb-light bg-gb-darkest/80 hover:bg-gb-dark/50 text-gb-dark hover:text-gb-light transition-colors"
             aria-label="Upload photo"
           >
-            <span className="text-[10px]" aria-hidden="true">📷</span>
+            <span className="text-[11px]" aria-hidden="true">📷</span>
           </button>
 
           {/* Remove photo button (only when custom photo is set) */}
@@ -100,14 +100,14 @@ export function GeckoSprite({ customPhoto, onPhotoChange }: GeckoSpriteProps) {
               className="flex items-center justify-center w-6 h-6 rounded border border-gb-dark hover:border-gb-light bg-gb-darkest/80 hover:bg-gb-dark/50 text-gb-dark hover:text-gb-light transition-colors"
               aria-label="Remove photo"
             >
-              <span className="text-[8px]" aria-hidden="true">↩</span>
+              <span className="text-[14px]" aria-hidden="true">↩</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Species label + info button */}
-      <div className="flex items-center gap-1.5 text-[6px] text-gb-dark">
+      <div className="flex items-center gap-1.5 text-[7px] text-gb-dark">
         <span aria-hidden="true">{"*"}</span>
         <span>LEOPARD GECKO</span>
         <span aria-hidden="true">{"*"}</span>
@@ -125,7 +125,7 @@ function SpeciesInfo() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex items-center justify-center w-3.5 h-3.5 rounded-full border border-gb-dark hover:border-gb-light text-gb-dark hover:text-gb-light text-[5px] font-bold leading-none transition-colors"
+          className="flex items-center justify-center w-3.5 h-3.5 rounded-full border border-gb-dark hover:border-gb-light text-gb-dark hover:text-gb-light text-[6px] font-bold leading-none transition-colors"
           aria-label="Species information"
         >
           i
@@ -134,9 +134,9 @@ function SpeciesInfo() {
       <PopoverContent
         align="center"
         side="bottom"
-        className="w-[260px] bg-gb-darkest border-gb-dark p-2.5 rounded"
+        className="w-[200px] bg-gb-darkest border-gb-dark p-2.5 rounded"
       >
-        <div className="text-[7px] text-gb-light mb-2 border-b border-gb-dark pb-1 tracking-wider text-center">
+        <div className="text-[8px] text-gb-light mb-2 border-b border-gb-dark pb-1 tracking-wider text-center">
           EUBLEPHARIS MACULARIUS
         </div>
 
@@ -152,7 +152,7 @@ function SpeciesInfo() {
           />
         </div>
 
-        <div className="text-[5px] text-gb-light leading-relaxed space-y-1.5 mb-2">
+        <div className="text-[6px] text-gb-light leading-relaxed space-y-1.5 mb-2">
           <p>
             The leopard gecko (Eublepharis macularius) is a ground-dwelling
             lizard native to the rocky dry grasslands and deserts of
@@ -176,7 +176,7 @@ function SpeciesInfo() {
             href="https://en.wikipedia.org/wiki/Leopard_gecko"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[5px] text-gb-light hover:text-gb-lightest underline tracking-wider"
+            className="text-[6px] text-gb-light hover:text-gb-lightest underline tracking-wider"
           >
             {">> WIKIPEDIA: LEOPARD GECKO <<"}
           </a>

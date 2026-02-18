@@ -24,7 +24,7 @@ export function BasicInfo({ name, sex, morph, born, species, stage, onUpdate }: 
 
   return (
     <div className="pixel-border-inset bg-gb-darkest p-2.5">
-      <div className="text-[6px] text-gb-dark mb-1.5 border-b border-gb-dark pb-1 tracking-wider">
+      <div className="text-[7px] text-gb-dark mb-1.5 border-b border-gb-dark pb-1 tracking-wider">
         {"- PROFILE -"}
       </div>
       <div className="flex flex-col gap-1">
@@ -44,8 +44,8 @@ export function BasicInfo({ name, sex, morph, born, species, stage, onUpdate }: 
 }
 
 function SexLabel({ v }: { v: AnimalSex }) {
-  if (v === "MALE") return <><span className="text-[5px]">♂</span> MALE</>
-  if (v === "FEMALE") return <><span className="text-[5px]">♀</span> FEMALE</>
+  if (v === "MALE") return <><span className="text-[6px]">♂</span> MALE</>
+  if (v === "FEMALE") return <><span className="text-[6px]">♀</span> FEMALE</>
   return <>?</>
 }
 
@@ -63,7 +63,7 @@ function SexRow({
       <button
         type="button"
         onClick={() => setPicking(true)}
-        className="flex text-[7px] leading-relaxed items-center w-full text-left hover:bg-gb-dark/20 transition-colors -mx-1 px-1 rounded"
+        className="flex text-[8px] leading-relaxed items-center w-full text-left hover:bg-gb-dark/20 transition-colors -mx-1 px-1 rounded"
       >
         <span className="text-gb-dark w-16 shrink-0">SEX:</span>
         <span className="text-gb-light truncate flex-1"><SexLabel v={value} /></span>
@@ -75,10 +75,10 @@ function SexRow({
           onClick={() => setPicking(false)}
         >
           <div
-            className="w-full max-w-[200px] pixel-border bg-gb-darkest p-3 flex flex-col gap-2"
+            className="w-full max-w-[215px] pixel-border bg-gb-darkest p-3 flex flex-col gap-1"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-[7px] text-gb-lightest text-center tracking-wider border-b border-gb-dark pb-1">
+            <div className="text-[8px] text-gb-lightest text-center tracking-wider border-b border-gb-dark pb-1">
               SELECT SEX
             </div>
             {SEX_OPTIONS.map((opt) => (
@@ -89,7 +89,7 @@ function SexRow({
                   onUpdate("sex", opt)
                   setPicking(false)
                 }}
-                className={`w-full text-[7px] py-1 border transition-colors tracking-wider ${
+                className={`w-full text-[8px] py-1 border transition-colors tracking-wider ${
                   value === opt
                     ? "border-gb-light text-gb-light bg-gb-dark/50"
                     : "border-gb-dark text-gb-dark hover:text-gb-light hover:border-gb-light"
@@ -119,7 +119,7 @@ function StageRow({
       <button
         type="button"
         onClick={() => setPicking(true)}
-        className="flex text-[7px] leading-relaxed items-center w-full text-left hover:bg-gb-dark/20 transition-colors -mx-1 px-1 rounded"
+        className="flex text-[8px] leading-relaxed items-center w-full text-left hover:bg-gb-dark/20 transition-colors -mx-1 px-1 rounded"
       >
         <span className="text-gb-dark w-16 shrink-0">STAGE:</span>
         <span className="text-gb-light truncate flex-1">{value}</span>
@@ -131,10 +131,10 @@ function StageRow({
           onClick={() => setPicking(false)}
         >
           <div
-            className="w-full max-w-[200px] pixel-border bg-gb-darkest p-3 flex flex-col gap-2"
+            className="w-full max-w-[215px] pixel-border bg-gb-darkest p-3 flex flex-col gap-1"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-[7px] text-gb-lightest text-center tracking-wider border-b border-gb-dark pb-1">
+            <div className="text-[8px] text-gb-lightest text-center tracking-wider border-b border-gb-dark pb-1">
               SELECT STAGE
             </div>
             {STAGE_OPTIONS.map((opt) => (
@@ -145,7 +145,7 @@ function StageRow({
                   onUpdate("stage", opt)
                   setPicking(false)
                 }}
-                className={`w-full text-[7px] py-1 border transition-colors tracking-wider ${
+                className={`w-full text-[8px] py-1 border transition-colors tracking-wider ${
                   value === opt
                     ? "border-gb-light text-gb-light bg-gb-dark/50"
                     : "border-gb-dark text-gb-dark hover:text-gb-light hover:border-gb-light"
@@ -163,7 +163,7 @@ function StageRow({
 
 function ReadOnlyRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex text-[7px] leading-relaxed items-center -mx-1 px-1">
+    <div className="flex text-[8px] leading-relaxed items-center -mx-1 px-1">
       <span className="text-gb-dark w-16 shrink-0">{label}:</span>
       <span className="text-gb-light truncate flex-1">{value}</span>
     </div>
@@ -208,7 +208,7 @@ function EditableRow({
 
   if (editing) {
     return (
-      <div className="flex text-[7px] leading-relaxed items-center">
+      <div className="flex text-[8px] leading-relaxed items-center">
         <span className="text-gb-dark w-16 shrink-0">{label}:</span>
         <input
           ref={inputRef}
@@ -219,7 +219,7 @@ function EditableRow({
             if (e.key === "Enter") save()
             if (e.key === "Escape") { setDraft(value); setEditing(false) }
           }}
-          className="flex-1 bg-gb-dark/40 text-gb-lightest border border-gb-light px-1 py-0 text-[7px] font-mono outline-none min-w-0"
+          className="flex-1 bg-gb-dark/40 text-gb-lightest border border-gb-light px-1 py-0 text-[8px] font-mono outline-none min-w-0"
           maxLength={20}
           aria-label={`Edit ${label.toLowerCase()}`}
         />
@@ -231,7 +231,7 @@ function EditableRow({
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className="flex text-[7px] leading-relaxed items-center w-full text-left hover:bg-gb-dark/20 transition-colors -mx-1 px-1 rounded"
+      className="flex text-[8px] leading-relaxed items-center w-full text-left hover:bg-gb-dark/20 transition-colors -mx-1 px-1 rounded"
     >
       <span className="text-gb-dark w-16 shrink-0">{label}:</span>
       <span className="text-gb-light truncate flex-1">{value}</span>

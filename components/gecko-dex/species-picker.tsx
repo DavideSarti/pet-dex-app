@@ -33,7 +33,7 @@ export function SpeciesPicker({ onSelect, onCancel }: SpeciesPickerProps) {
         className="w-full max-w-[280px] pixel-border bg-gb-darkest p-4 flex flex-col gap-3"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-[7px] text-gb-lightest text-center tracking-wider">
+        <div className="text-[8px] text-gb-lightest text-center tracking-wider">
           {"== SELECT SPECIES =="}
         </div>
 
@@ -45,11 +45,11 @@ export function SpeciesPicker({ onSelect, onCancel }: SpeciesPickerProps) {
               onClick={() => onSelect(sp.id)}
               className="pixel-border bg-gb-dark/10 hover:bg-gb-dark/30 p-3 flex flex-col items-center gap-2 transition-colors group"
             >
-              <span className="text-[20px]">{sp.icon}</span>
-              <span className="text-[7px] text-gb-lightest group-hover:text-gb-lightest tracking-wider text-center leading-tight">
+              <span className="text-[22px]">{sp.icon}</span>
+              <span className="text-[8px] text-gb-lightest group-hover:text-gb-lightest tracking-wider text-center leading-tight">
                 {sp.id}
               </span>
-              <span className="text-[5px] text-gb-dark tracking-wider">
+              <span className="text-[6px] text-gb-dark tracking-wider">
                 {sp.label}
               </span>
             </button>
@@ -59,7 +59,7 @@ export function SpeciesPicker({ onSelect, onCancel }: SpeciesPickerProps) {
         <button
           type="button"
           onClick={onCancel}
-          className="text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
+          className="text-[8px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
         >
           CANCEL
         </button>

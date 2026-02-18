@@ -66,17 +66,17 @@ function WeightModal({ currentWeight, onConfirm, onCancel, unit = "g" }: WeightM
         onClick={(e) => e.stopPropagation()}
       >
         {/* Title */}
-        <div className="text-[7px] text-gb-lightest text-center tracking-wider">
+        <div className="text-[8px] text-gb-lightest text-center tracking-wider">
           {"== LOG WEIGHT =="}
         </div>
 
         {/* Weight display */}
         <div className="pixel-border-inset bg-gb-dark/20 p-2 flex items-center justify-center gap-1">
-          <span className="text-[5px] text-gb-dark">WEIGHT:</span>
-          <span className="text-[12px] text-gb-lightest tracking-widest">
+          <span className="text-[6px] text-gb-dark">WEIGHT:</span>
+          <span className="text-[13px] text-gb-lightest tracking-widest">
             {digits}
           </span>
-          <span className="text-[7px] text-gb-light">{unit}</span>
+          <span className="text-[8px] text-gb-light">{unit}</span>
         </div>
 
         {/* Number pad */}
@@ -91,7 +91,7 @@ function WeightModal({ currentWeight, onConfirm, onCancel, unit = "g" }: WeightM
                     else if (key === "DEL") handleBackspace()
                     else handleDigit(key)
                   }}
-                  className={`w-[48px] py-1.5 text-[7px] text-center border transition-colors ${
+                  className={`w-[48px] py-1.5 text-[8px] text-center border transition-colors ${
                     key === "C" || key === "DEL"
                       ? "text-gb-dark border-gb-dark hover:text-gb-light hover:border-gb-light"
                       : "text-gb-light border-gb-dark hover:border-gb-light bg-gb-dark/20"
@@ -115,13 +115,13 @@ function WeightModal({ currentWeight, onConfirm, onCancel, unit = "g" }: WeightM
         <div className="flex gap-2">
           <button
             onClick={onCancel}
-            className="flex-1 text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
+            className="flex-1 text-[8px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
           >
             CANCEL
           </button>
           <button
             onClick={handleConfirm}
-            className="flex-1 text-[7px] text-gb-darkest bg-gb-light hover:bg-gb-lightest py-1.5 transition-colors tracking-wider font-bold"
+            className="flex-1 text-[8px] text-gb-darkest bg-gb-light hover:bg-gb-lightest py-1.5 transition-colors tracking-wider font-bold"
           >
             CONFIRM
           </button>

@@ -98,7 +98,7 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Title */}
-        <div className="text-[7px] text-gb-lightest text-center tracking-wider">
+        <div className="text-[8px] text-gb-lightest text-center tracking-wider">
           {"== LOG FEED =="}
         </div>
 
@@ -110,17 +110,17 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
               {/* Feeder type selector */}
               <button
                 onClick={() => cycleFeeder(i, -1)}
-                className="text-[8px] text-gb-dark hover:text-gb-light px-0.5"
+                className="text-[9px] text-gb-dark hover:text-gb-light px-0.5"
                 aria-label="Previous feeder type"
               >
                 {"<"}
               </button>
-              <div className="flex-1 text-center text-[6px] text-gb-light bg-gb-dark/30 py-1 px-1 border border-gb-dark min-w-[70px]">
+              <div className="flex-1 text-center text-[7px] text-gb-light bg-gb-dark/30 py-1 px-1 border border-gb-dark min-w-[70px]">
                 {row.feeder}
               </div>
               <button
                 onClick={() => cycleFeeder(i, 1)}
-                className="text-[8px] text-gb-dark hover:text-gb-light px-0.5"
+                className="text-[9px] text-gb-dark hover:text-gb-light px-0.5"
                 aria-label="Next feeder type"
               >
                 {">"}
@@ -128,7 +128,7 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
 
               {/* Separator */}
               <span
-                className="text-[6px] text-gb-dark"
+                className="text-[7px] text-gb-dark"
                 aria-hidden="true"
               >
                 x
@@ -137,17 +137,17 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
               {/* Quantity selector */}
               <button
                 onClick={() => changeQty(i, -1)}
-                className="text-[8px] text-gb-dark hover:text-gb-light px-0.5"
+                className="text-[9px] text-gb-dark hover:text-gb-light px-0.5"
                 aria-label="Decrease quantity"
               >
                 {"-"}
               </button>
-              <div className="text-[7px] text-gb-light bg-gb-dark/30 py-1 px-2 border border-gb-dark min-w-[24px] text-center">
+              <div className="text-[8px] text-gb-light bg-gb-dark/30 py-1 px-2 border border-gb-dark min-w-[24px] text-center">
                 {String(row.qty).padStart(2, "0")}
               </div>
               <button
                 onClick={() => changeQty(i, 1)}
-                className="text-[8px] text-gb-dark hover:text-gb-light px-0.5"
+                className="text-[9px] text-gb-dark hover:text-gb-light px-0.5"
                 aria-label="Increase quantity"
               >
                 {"+"}
@@ -157,7 +157,7 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
               {rows.length > 1 && (
                 <button
                   onClick={() => removeRow(i)}
-                  className="text-[7px] text-gb-dark hover:text-gb-light px-0.5"
+                  className="text-[8px] text-gb-dark hover:text-gb-light px-0.5"
                   aria-label="Remove feeder row"
                 >
                   {"X"}
@@ -170,7 +170,7 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
                 value={row.customName ?? ""}
                 onChange={(e) => setCustomName(i, e.target.value)}
                 placeholder="e.g. Hornworms, Waxworms..."
-                className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[6px] px-1.5 py-0.5 placeholder:text-gb-dark/50 outline-none ml-4"
+                className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[7px] px-1.5 py-0.5 placeholder:text-gb-dark/50 outline-none ml-4"
                 maxLength={30}
                 aria-label="Custom feeder name"
               />
@@ -183,7 +183,7 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
         {rows.length < 4 && (
           <button
             onClick={addRow}
-            className="self-center text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light px-3 py-0.5 transition-colors"
+            className="self-center text-[8px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light px-3 py-0.5 transition-colors"
           >
             {"+ ADD FEEDER"}
           </button>
@@ -191,10 +191,10 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
 
         {/* Integrators */}
         <div className="border-t border-gb-dark pt-2 mt-1">
-          <div className="text-[6px] text-gb-dark mb-1">INTEGRATORS (optional)</div>
+          <div className="text-[7px] text-gb-dark mb-1">INTEGRATORS (optional)</div>
           <div className="flex flex-wrap gap-x-3 gap-y-1">
             {INTEGRATOR_OPTIONS.map((key) => (
-              <label key={key} className="flex items-center gap-1 text-[6px] text-gb-light cursor-pointer">
+              <label key={key} className="flex items-center gap-1 text-[7px] text-gb-light cursor-pointer">
                 <input
                   type="checkbox"
                   checked={integrators[key] ?? false}
@@ -208,13 +208,13 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
             ))}
           </div>
           <div className="mt-1 flex items-center gap-1">
-            <span className="text-[6px] text-gb-dark shrink-0">Custom:</span>
+            <span className="text-[7px] text-gb-dark shrink-0">Custom:</span>
             <input
               type="text"
               value={customIntegrator}
               onChange={(e) => setCustomIntegrator(e.target.value)}
               placeholder="e.g. Probiotic"
-              className="flex-1 min-w-0 bg-gb-dark/20 border border-gb-dark text-gb-light text-[6px] px-1.5 py-0.5 placeholder:text-gb-dark/50"
+              className="flex-1 min-w-0 bg-gb-dark/20 border border-gb-dark text-gb-light text-[7px] px-1.5 py-0.5 placeholder:text-gb-dark/50"
             />
           </div>
         </div>
@@ -223,13 +223,13 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
         <div className="flex gap-2 mt-1">
           <button
             onClick={onCancel}
-            className="flex-1 text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
+            className="flex-1 text-[8px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light py-1.5 transition-colors tracking-wider"
           >
             CANCEL
           </button>
           <button
             onClick={handleConfirm}
-            className="flex-1 text-[7px] text-gb-darkest bg-gb-light hover:bg-gb-lightest py-1.5 transition-colors tracking-wider font-bold"
+            className="flex-1 text-[8px] text-gb-darkest bg-gb-light hover:bg-gb-lightest py-1.5 transition-colors tracking-wider font-bold"
           >
             CONFIRM
           </button>

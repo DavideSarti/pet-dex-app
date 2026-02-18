@@ -1,23 +1,25 @@
 "use client"
 
 import { useState, useCallback, useRef } from "react"
+import dynamic from "next/dynamic"
 import { toDDMM } from "@/lib/utils"
 import type { AnimalProfile, HealthLogEntry, Prescription, BeetleStage, WeightEntry } from "./types"
 import { GeckoSprite } from "./gecko-sprite"
-import { BeetleSprite } from "./beetle-sprite"
-import { DogSprite } from "./dog-sprite"
 import { BasicInfo } from "./basic-info"
 import { StatsGrid } from "./stats-grid"
-import { BeetleStats } from "./beetle-stats"
-import { DogStats } from "./dog-stats"
 import { HealthLog } from "./health-log"
 import { SelectBar } from "./select-bar"
 import { FeedModal, type FeedRow } from "./feed-modal"
 import { WeightModal } from "./weight-modal"
 import { ShedModal } from "./shed-modal"
-import { SubstrateModal } from "./substrate-modal"
 import { MedsModal } from "./meds-modal"
-import { VetModal } from "./vet-modal"
+
+const BeetleSprite = dynamic(() => import("./beetle-sprite").then(m => ({ default: m.BeetleSprite })), { ssr: false })
+const DogSprite = dynamic(() => import("./dog-sprite").then(m => ({ default: m.DogSprite })), { ssr: false })
+const BeetleStats = dynamic(() => import("./beetle-stats").then(m => ({ default: m.BeetleStats })), { ssr: false })
+const DogStats = dynamic(() => import("./dog-stats").then(m => ({ default: m.DogStats })), { ssr: false })
+const SubstrateModal = dynamic(() => import("./substrate-modal").then(m => ({ default: m.SubstrateModal })), { ssr: false })
+const VetModal = dynamic(() => import("./vet-modal").then(m => ({ default: m.VetModal })), { ssr: false })
 type ModalType = "feed" | "weight" | "shed" | "meds" | "substrate" | "vet" | null
 
 const GECKO_TABS = ["FEED", "WEIGHT", "SHED", "MEDS"]
@@ -36,6 +38,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
   const isDog = animal.species === "DOG"
 
   const [healthLog, setHealthLog] = useState<HealthLogEntry[]>(animal.healthLog)
+  const [showLogs, setShowLogs] = useState(false)
   const [lastAction, setLastAction] = useState<string | null>(null)
   const [weight, setWeight] = useState(animal.weight)
   const [lastFeed, setLastFeed] = useState(animal.lastFeed)
@@ -415,9 +418,6 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
             }}
             aria-hidden="true"
           />
-          <span className="text-[6px] text-neutral-500 tracking-[0.2em]">
-            {titleLabel} v1.0
-          </span>
         </div>
 
         {/* Screen bezel */}
@@ -448,27 +448,41 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
             />
 
             {/* Screen content - scrollable */}
-            <div className="relative p-3 flex flex-col gap-2.5 animate-flicker h-full overflow-y-auto screen-zoom">
-              {/* Title bar with back button */}
-              <header className="text-center relative">
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 text-[7px] text-gb-dark hover:text-gb-light transition-colors tracking-wider"
-                  aria-label="Back to list"
-                >
-                  {"< BACK"}
-                </button>
-                <div className="text-[6px] text-gb-dark">
-                  {"+--------------------------+"}
-                </div>
-                <h1 className="text-[9px] text-gb-lightest tracking-[0.15em] py-0.5">
-                  {titleLabel}
-                </h1>
-                <div className="text-[6px] text-gb-dark">
-                  {"+--------------------------+"}
-                </div>
-              </header>
+            <div className="relative p-3 flex flex-col gap-2.5 animate-flicker h-full overflow-y-auto">
+              {showLogs ? (
+                <>
+                  <header className="text-center relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowLogs(false)}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 text-[8px] text-gb-dark hover:text-gb-light transition-colors tracking-wider"
+                      aria-label="Back to profile"
+                    >
+                      {"< BACK"}
+                    </button>
+                    <div className="text-[7px] text-gb-dark">
+                      {"+--------------------------+"}
+                    </div>
+                    <h1 className="text-[10px] text-gb-lightest tracking-[0.15em] py-0.5">
+                      LOGS
+                    </h1>
+                    <div className="text-[7px] text-gb-dark">
+                      {"+--------------------------+"}
+                    </div>
+                  </header>
+                  <HealthLog entries={healthLog} species={animal.species} fullScreen />
+                </>
+              ) : (
+              <>
+              {/* Back button */}
+              <button
+                type="button"
+                onClick={onBack}
+                className="self-start text-[8px] text-gb-dark hover:text-gb-light transition-colors tracking-wider"
+                aria-label="Back to list"
+              >
+                {"< BACK"}
+              </button>
 
               {/* Sprite frame - species-specific */}
               {isDog ? (
@@ -528,13 +542,19 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                 />
               )}
 
-              {/* Health Log */}
-              <HealthLog entries={healthLog} species={animal.species} />
+              {/* Logs button */}
+              <button
+                type="button"
+                onClick={() => setShowLogs(true)}
+                className="w-full py-1.5 text-[7px] text-gb-darkest bg-gb-light hover:bg-gb-lightest border-2 border-gb-lightest tracking-wider text-center transition-colors font-bold"
+              >
+                LOGS
+              </button>
 
               {/* Action feedback toast */}
               {lastAction && (
                 <div
-                  className="text-center text-[7px] text-gb-darkest bg-gb-light py-1 px-2"
+                  className="text-center text-[8px] text-gb-darkest bg-gb-light py-1 px-2"
                   role="status"
                   aria-live="polite"
                 >
@@ -549,6 +569,8 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                 tabs={isDog ? DOG_TABS : isBeetle ? BEETLE_TABS : GECKO_TABS}
                 onSelect={handleTabSelect}
               />
+              </>
+              )}
             </div>
 
             {/* Modal overlays rendered inside the screen */}

@@ -62,13 +62,13 @@ export function PinScreen({ onSubmit, loading, error }: PinScreenProps) {
               <h1 className="text-[14px] text-gb-lightest tracking-[0.15em] mb-2">
                 PET-DEX
               </h1>
-              <div className="text-[8px] text-gb-dark tracking-wider">
+              <div className="text-[17px] text-gb-dark tracking-wider">
                 CLOUD SYNC
               </div>
             </div>
 
             {/* Instructions */}
-            <div className="text-[7px] text-gb-light text-center leading-relaxed max-w-[240px]">
+            <div className="text-[15px] text-gb-light text-center leading-relaxed max-w-[240px]">
               ENTER YOUR PIN TO SYNC DATA ACROSS ALL YOUR DEVICES.
               USE THE SAME PIN ON EVERY DEVICE.
             </div>
@@ -82,12 +82,12 @@ export function PinScreen({ onSubmit, loading, error }: PinScreenProps) {
                 onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 placeholder="YOUR PIN"
                 maxLength={20}
-                className="w-full text-center text-[12px] tracking-[0.3em] py-2 px-3 border-2 border-gb-dark bg-gb-darkest text-gb-lightest placeholder:text-gb-dark focus:border-gb-light focus:outline-none"
+                className="w-full text-center text-[26px] tracking-[0.3em] py-2 px-3 border-2 border-gb-dark bg-gb-darkest text-gb-lightest placeholder:text-gb-dark focus:border-gb-light focus:outline-none"
                 autoFocus
               />
 
               {error && (
-                <div className="text-[6px] text-red-400 text-center">
+                <div className="text-[13px] text-red-400 text-center">
                   {error}
                 </div>
               )}
@@ -95,14 +95,14 @@ export function PinScreen({ onSubmit, loading, error }: PinScreenProps) {
               <button
                 onClick={handleSubmit}
                 disabled={pin.trim().length < 4 || loading}
-                className="w-full py-2 text-[8px] tracking-wider border-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-gb-darkest text-gb-light border-gb-dark hover:border-gb-light hover:text-gb-lightest"
+                className="w-full py-2 text-[17px] tracking-wider border-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-gb-darkest text-gb-light border-gb-dark hover:border-gb-light hover:text-gb-lightest"
               >
                 {loading ? "CONNECTING..." : "ENTER"}
               </button>
             </div>
 
             {/* Hint */}
-            <div className="text-[5px] text-gb-dark text-center tracking-wider">
+            <div className="text-[11px] text-gb-dark text-center tracking-wider">
               MIN 4 CHARACTERS
             </div>
           </div>
