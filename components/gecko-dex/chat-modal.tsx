@@ -38,27 +38,19 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
 
   const isLoading = status === "streaming" || status === "submitted"
 
-  const DEMO_REPLIES = [
-    "PET-AI here! I have access to ALL your animals. Ask me about weights, feeding schedules, health logs, or anything!",
-    "TIP: You can ask things like 'WHICH PET WAS LAST FED?' or 'HOW MANY GECKOS DO I HAVE?' and I'll search your data!",
-    "FEEDING TIP: Always dust insects with calcium for geckos. Dogs need balanced kibble. Beetles love fruit jelly!",
-    "PET-AI is in DEMO mode. Add a Gemini API key to .env.local for real answers. Until then, enjoy these tips!",
-    "PRO TIP: Regular weight tracking helps spot health issues early. I can analyze trends across ALL your pets!",
-  ]
-
   useEffect(() => {
     if (!error) return
-    const reply = DEMO_REPLIES[Math.floor(Math.random() * DEMO_REPLIES.length)]
+    const errMsg = error instanceof Error ? error.message : String(error)
     setMessages((prev) => [
       ...prev,
       {
-        id: `demo-${Date.now()}`,
+        id: `error-${Date.now()}`,
         role: "assistant",
-        parts: [{ type: "text" as const, text: reply }],
+        parts: [{ type: "text" as const, text: `ERROR: ${errMsg}. Check your API key and restart the dev server.` }],
       },
     ])
     clearError()
-  }, [error, setMessages, clearError]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [error, setMessages, clearError])
 
   useEffect(() => {
     if (scrollRef.current) {

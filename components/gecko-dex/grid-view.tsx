@@ -303,24 +303,24 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
         </div>
 
         {/* Bottom shell detail */}
-        <div className="flex items-center justify-between px-3 mt-3 mb-1">
-          <span className="text-[6px] text-neutral-600 tracking-[0.15em]">
+        <div className="flex items-center px-3 mt-3 mb-1">
+          <span className="text-[6px] text-neutral-600 tracking-[0.15em] flex-1">
             PET-DEX
           </span>
-          <div className="flex items-center gap-3">
-            {onOpenChat && (
-              <button
-                onClick={onOpenChat}
-                className="flex items-center gap-1 text-[6px] text-neutral-500 hover:text-neutral-300 tracking-[0.1em] transition-colors"
-                aria-label="Open AI assistant"
-              >
-                <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
-                  <rect x="0" y="1" width="7" height="5" rx="0" />
-                  <polygon points="1,6 3,6 1,8" />
-                </svg>
-                PET-AI
-              </button>
-            )}
+          {onOpenChat && (
+            <button
+              onClick={onOpenChat}
+              className="flex items-center gap-1 text-[6px] text-neutral-500 hover:text-neutral-300 tracking-[0.1em] transition-colors"
+              aria-label="Open AI assistant"
+            >
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
+                <rect x="0" y="1" width="7" height="5" rx="0" />
+                <polygon points="1,6 3,6 1,8" />
+              </svg>
+              PET-AI
+            </button>
+          )}
+          <div className="flex items-center gap-2 flex-1 justify-end">
             {onChangePin && (
               <button
                 onClick={onChangePin}

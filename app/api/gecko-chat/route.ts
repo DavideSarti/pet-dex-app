@@ -64,6 +64,7 @@ ${animalsData
 `
   }
 
+  try {
   const result = streamText({
     model: google("gemini-2.0-flash"),
     system: `You are PET-AI, an expert veterinary assistant for exotic pets and dogs. You speak in a concise, retro 8-bit style — short sentences, helpful and direct. You have deep knowledge about:
@@ -90,4 +91,12 @@ ${animalsContext}`,
     originalMessages: messages,
     consumeSseStream: consumeStream,
   })
+  } catch (err) {
+    console.error("PET-AI API error:", err)
+    const msg = err instanceof Error ? err.message : String(err)
+    return new Response(`PET-AI error: ${msg}`, {
+      status: 500,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    })
+  }
 }

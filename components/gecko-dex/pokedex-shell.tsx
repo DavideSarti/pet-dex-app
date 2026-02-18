@@ -603,34 +603,32 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
         </div>
 
         {/* Bottom shell detail */}
-        <div className="flex items-center justify-between px-3 mt-3 mb-1">
-          <span className="text-[6px] text-neutral-600 tracking-[0.15em]">
+        <div className="flex items-center px-3 mt-3 mb-1">
+          <span className="text-[6px] text-neutral-600 tracking-[0.15em] flex-1">
             PET-DEX
           </span>
-          <div className="flex items-center gap-3">
-            {onOpenChat && (
-              <button
-                type="button"
-                onClick={onOpenChat}
-                className="flex items-center gap-1 text-[6px] text-neutral-500 hover:text-neutral-300 tracking-[0.1em] transition-colors"
-                aria-label="Open AI assistant"
-              >
-                <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
-                  <rect x="0" y="1" width="7" height="5" rx="0" />
-                  <polygon points="1,6 3,6 1,8" />
-                </svg>
-                PET-AI
-              </button>
-            )}
-            <div className="flex gap-[3px]" aria-hidden="true">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="w-[2px] h-3 rounded-full"
-                  style={{ background: "#2a2a2a" }}
-                />
-              ))}
-            </div>
+          {onOpenChat && (
+            <button
+              type="button"
+              onClick={onOpenChat}
+              className="flex items-center gap-1 text-[6px] text-neutral-500 hover:text-neutral-300 tracking-[0.1em] transition-colors"
+              aria-label="Open AI assistant"
+            >
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
+                <rect x="0" y="1" width="7" height="5" rx="0" />
+                <polygon points="1,6 3,6 1,8" />
+              </svg>
+              PET-AI
+            </button>
+          )}
+          <div className="flex gap-[3px] flex-1 justify-end" aria-hidden="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-[2px] h-3 rounded-full"
+                style={{ background: "#2a2a2a" }}
+              />
+            ))}
           </div>
         </div>
       </div>
