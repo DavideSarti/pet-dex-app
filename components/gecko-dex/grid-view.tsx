@@ -12,9 +12,10 @@ interface GridViewProps {
   onDelete: (id: string) => void
   onReorder: (animals: AnimalProfile[]) => void
   onChangePin?: () => void
+  onOpenChat?: () => void
 }
 
-export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChangePin }: GridViewProps) {
+export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChangePin, onOpenChat }: GridViewProps) {
   const [showSpeciesPicker, setShowSpeciesPicker] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -188,7 +189,7 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
             }}
             aria-hidden="true"
           />
-          <span className="text-[5px] text-neutral-500 tracking-[0.2em]">
+          <span className="text-[6px] text-neutral-500 tracking-[0.2em]">
             PET-DEX v1.0
           </span>
         </div>
@@ -303,14 +304,27 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
 
         {/* Bottom shell detail */}
         <div className="flex items-center justify-between px-3 mt-3 mb-1">
-          <span className="text-[5px] text-neutral-600 tracking-[0.15em]">
+          <span className="text-[6px] text-neutral-600 tracking-[0.15em]">
             PET-DEX
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {onOpenChat && (
+              <button
+                onClick={onOpenChat}
+                className="flex items-center gap-1 text-[6px] text-neutral-500 hover:text-neutral-300 tracking-[0.1em] transition-colors"
+                aria-label="Open AI assistant"
+              >
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
+                  <rect x="0" y="1" width="7" height="5" rx="0" />
+                  <polygon points="1,6 3,6 1,8" />
+                </svg>
+                PET-AI
+              </button>
+            )}
             {onChangePin && (
               <button
                 onClick={onChangePin}
-                className="text-[5px] text-neutral-600 hover:text-neutral-400 tracking-[0.1em] transition-colors"
+                className="text-[6px] text-neutral-600 hover:text-neutral-400 tracking-[0.1em] transition-colors"
               >
                 CHANGE PIN
               </button>

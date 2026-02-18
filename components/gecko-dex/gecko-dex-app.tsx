@@ -344,26 +344,6 @@ export function GeckoDexApp() {
     )
   }
 
-  const chatButton = (
-    <button
-      type="button"
-      onClick={handleOpenChat}
-      className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 px-3 py-2 text-[7px] tracking-wider transition-all text-neutral-400 hover:text-neutral-200"
-      style={{
-        background: "linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%)",
-        borderRadius: "12px",
-        boxShadow: "2px 2px 0px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 12px rgba(139,172,15,0.15)",
-      }}
-      aria-label="Open AI assistant"
-    >
-      <svg width="10" height="10" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
-        <rect x="0" y="1" width="7" height="5" rx="0" />
-        <polygon points="1,6 3,6 1,8" />
-      </svg>
-      <span>PET-AI</span>
-    </button>
-  )
-
   if (selectedAnimal) {
     return (
       <>
@@ -372,8 +352,8 @@ export function GeckoDexApp() {
           animal={selectedAnimal}
           onUpdate={handleUpdate}
           onBack={handleBack}
+          onOpenChat={handleOpenChat}
         />
-        {chatButton}
         {showChat && <ChatModal animals={animals} onClose={handleCloseChat} />}
       </>
     )
@@ -388,8 +368,8 @@ export function GeckoDexApp() {
         onDelete={handleDelete}
         onReorder={handleReorder}
         onChangePin={cloudEnabled ? handleChangePin : undefined}
+        onOpenChat={handleOpenChat}
       />
-      {chatButton}
       {showChat && <ChatModal animals={animals} onClose={handleCloseChat} />}
     </>
   )
