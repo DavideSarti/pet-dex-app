@@ -51,7 +51,7 @@ export function GeckoSprite({ customPhoto, onPhotoChange }: GeckoSpriteProps) {
       {/* Pixel frame with overlaid buttons */}
       <div className="relative">
         <div className="pixel-border bg-gb-darkest p-[3px]">
-          <div className="relative w-[120px] h-[100px] bg-gb-dark flex items-center justify-center overflow-hidden">
+          <div className="relative w-[100px] h-[83px] bg-gb-dark flex items-center justify-center overflow-hidden">
             {customPhoto ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={customPhoto} alt="Custom animal photo" className="w-full h-full object-cover" />
@@ -59,8 +59,8 @@ export function GeckoSprite({ customPhoto, onPhotoChange }: GeckoSpriteProps) {
               <Image
                 src="/images/gecko-normal.png"
                 alt="Pixel art of a leopard gecko"
-                width={120}
-                height={100}
+                width={100}
+                height={83}
                 className="object-contain"
                 style={{ imageRendering: "pixelated" }}
                 priority

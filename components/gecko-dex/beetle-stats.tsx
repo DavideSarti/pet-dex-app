@@ -66,7 +66,7 @@ function WeightRow({ value, onChartOpen }: { value: string; onChartOpen: () => v
   return (
     <div className="flex items-center text-[7px] leading-relaxed">
       <span className="text-gb-light mr-1" aria-hidden="true">{">"}</span>
-      <span className="text-gb-dark w-[70px] shrink-0">WEIGHT:</span>
+      <span className="text-gb-dark w-[55px] shrink-0">WEIGHT:</span>
       <span className="text-gb-light flex-1">{value}</span>
       <button
         type="button"
@@ -75,7 +75,7 @@ function WeightRow({ value, onChartOpen }: { value: string; onChartOpen: () => v
         aria-label="View weight chart"
         title="Weight chart"
       >
-        <svg width="10" height="10" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
           <path d="M0 7h8v1H0zM0 6l2-3 2 1.5L6 1l1.5 2H8V0H6L4 3.5 2 2 0 5z" />
         </svg>
       </button>
@@ -87,7 +87,7 @@ function StatRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center text-[7px] leading-relaxed">
       <span className="text-gb-light mr-1" aria-hidden="true">{">"}</span>
-      <span className="text-gb-dark w-[70px] shrink-0">{label}:</span>
+      <span className="text-gb-dark w-[55px] shrink-0">{label}:</span>
       <span className="text-gb-light">{value}</span>
     </div>
   )

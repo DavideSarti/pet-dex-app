@@ -2,12 +2,13 @@
 
 import { useState } from "react"
 
-const FEEDERS = ["MEALWORMS", "CRICKETS", "ROACHES"] as const
+const FEEDERS = ["MEALWORMS", "CRICKETS", "ROACHES", "CUSTOM"] as const
 
 const INTEGRATOR_OPTIONS = ["Calcium", "D3", "Multivitamin"] as const
 
 interface FeedRow {
   feeder: (typeof FEEDERS)[number]
+  customName?: string
   qty: number
 }
 
@@ -36,7 +37,13 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
   }
 
   const handleConfirm = () => {
-    onConfirm(rows, getIntegratorsList())
+    const resolved = rows.map((r) => ({
+      ...r,
+      feeder: r.feeder === "CUSTOM" && r.customName?.trim()
+        ? r.customName.trim().toUpperCase() as typeof r.feeder
+        : r.feeder,
+    }))
+    onConfirm(resolved, getIntegratorsList())
   }
 
   const cycleFeeder = (index: number, dir: 1 | -1) => {
@@ -61,8 +68,14 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
     )
   }
 
+  const setCustomName = (index: number, name: string) => {
+    setRows((prev) =>
+      prev.map((r, i) => (i === index ? { ...r, customName: name } : r))
+    )
+  }
+
   const addRow = () => {
-    if (rows.length >= 3) return
+    if (rows.length >= 4) return
     const used = rows.map((r) => r.feeder)
     const next = FEEDERS.find((f) => !used.includes(f)) || FEEDERS[0]
     setRows((prev) => [...prev, { feeder: next, qty: 1 }])
@@ -92,7 +105,8 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
         {/* Feeder rows */}
         <div className="flex flex-col gap-2">
           {rows.map((row, i) => (
-            <div key={i} className="flex items-center gap-1">
+            <div key={i} className="flex flex-col gap-1">
+            <div className="flex items-center gap-1">
               {/* Feeder type selector */}
               <button
                 onClick={() => cycleFeeder(i, -1)}
@@ -150,11 +164,23 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
                 </button>
               )}
             </div>
+            {row.feeder === "CUSTOM" && (
+              <input
+                type="text"
+                value={row.customName ?? ""}
+                onChange={(e) => setCustomName(i, e.target.value)}
+                placeholder="e.g. Hornworms, Waxworms..."
+                className="bg-gb-dark/20 border border-gb-dark text-gb-light text-[6px] px-1.5 py-0.5 placeholder:text-gb-dark/50 outline-none ml-4"
+                maxLength={30}
+                aria-label="Custom feeder name"
+              />
+            )}
+            </div>
           ))}
         </div>
 
         {/* Add row button */}
-        {rows.length < 3 && (
+        {rows.length < 4 && (
           <button
             onClick={addRow}
             className="self-center text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light px-3 py-0.5 transition-colors"
