@@ -15,16 +15,12 @@ import { ShedModal } from "./shed-modal"
 import { MedsModal } from "./meds-modal"
 
 const BeetleSprite = dynamic(() => import("./beetle-sprite").then(m => ({ default: m.BeetleSprite })), { ssr: false })
-const DogSprite = dynamic(() => import("./dog-sprite").then(m => ({ default: m.DogSprite })), { ssr: false })
 const BeetleStats = dynamic(() => import("./beetle-stats").then(m => ({ default: m.BeetleStats })), { ssr: false })
-const DogStats = dynamic(() => import("./dog-stats").then(m => ({ default: m.DogStats })), { ssr: false })
 const SubstrateModal = dynamic(() => import("./substrate-modal").then(m => ({ default: m.SubstrateModal })), { ssr: false })
-const VetModal = dynamic(() => import("./vet-modal").then(m => ({ default: m.VetModal })), { ssr: false })
-type ModalType = "feed" | "weight" | "shed" | "meds" | "substrate" | "vet" | null
+type ModalType = "feed" | "weight" | "shed" | "meds" | "substrate" | null
 
-const GECKO_TABS = ["FEED", "WEIGHT", "SHED", "MEDS"]
+const GECKO_TABS = ["FEED", "WATER", "WEIGHT", "SHED", "MEDS"]
 const BEETLE_TABS = ["FEED", "WEIGHT", "SUBSTRATE", "MEDS"]
-const DOG_TABS = ["WEIGHT", "VET", "MEDS"]
 
 interface PokedexShellProps {
   animal: AnimalProfile
@@ -35,14 +31,15 @@ interface PokedexShellProps {
 
 export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexShellProps) {
   const isBeetle = animal.species === "RHINO BEETLE"
-  const isDog = animal.species === "DOG"
 
   const [healthLog, setHealthLog] = useState<HealthLogEntry[]>(animal.healthLog)
   const [showLogs, setShowLogs] = useState(false)
+  const [showSmartHome, setShowSmartHome] = useState(false)
   const [lastAction, setLastAction] = useState<string | null>(null)
   const [weight, setWeight] = useState(animal.weight)
   const [lastFeed, setLastFeed] = useState(animal.lastFeed)
   const [lastShed, setLastShed] = useState(animal.lastShed)
+  const [lastWaterChange, setLastWaterChange] = useState(animal.lastWaterChange ?? new Date().toISOString().slice(0, 10))
   const [activeModal, setActiveModal] = useState<ModalType>(null)
 
   // Editable profile fields
@@ -60,10 +57,6 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
   const [substrate, setSubstrate] = useState(animal.substrate ?? "OAK FLAKE SOIL")
   const [lastSubstrateChange, setLastSubstrateChange] = useState(animal.lastSubstrateChange ?? new Date().toISOString().slice(0, 10))
 
-  // Dog-specific state
-  const [dogBreed, setDogBreed] = useState(animal.breed ?? "ALASKAN MALAMUTE")
-  const [lastVetCheckup, setLastVetCheckup] = useState(animal.lastVetCheckup ?? "")
-  const [nextVaccination, setNextVaccination] = useState(animal.nextVaccination ?? "")
 
   // Refs to track latest values so handlers can read them without nesting setState
   const healthLogRef = useRef(healthLog)
@@ -81,6 +74,17 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
   const getDateStr = () => toDDMM(new Date())
   const getTodayISO = () => new Date().toISOString().slice(0, 10)
 
+  const MAX_LOGS_PER_DAY = 50
+  const canAddLog = useCallback(() => {
+    const today = getTodayISO()
+    const todayCount = healthLogRef.current.filter((e) => e.id.length >= 13 && new Date(Number(e.id)).toISOString().slice(0, 10) === today).length
+    if (todayCount >= MAX_LOGS_PER_DAY) {
+      showAction("MAX 50 LOGS/DAY!")
+      return false
+    }
+    return true
+  }, [showAction])
+
   // Push current state up to parent
   const pushUpdate = useCallback(
     (overrides: Partial<AnimalProfile>) => {
@@ -93,6 +97,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
         weight,
         lastFeed,
         lastShed,
+        lastWaterChange,
         healthLog,
         prescriptions,
         weightHistory,
@@ -102,14 +107,10 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
         subspecies,
         substrate,
         lastSubstrateChange,
-        // dog fields
-        breed: dogBreed,
-        lastVetCheckup,
-        nextVaccination,
         ...overrides,
       })
     },
-    [animal, onUpdate, geckoName, geckoSex, geckoMorph, geckoBorn, weight, lastFeed, lastShed, healthLog, prescriptions, weightHistory, customPhoto, beetleStage, subspecies, substrate, lastSubstrateChange, dogBreed, lastVetCheckup, nextVaccination]
+    [animal, onUpdate, geckoName, geckoSex, geckoMorph, geckoBorn, weight, lastFeed, lastShed, lastWaterChange, healthLog, prescriptions, weightHistory, customPhoto, beetleStage, subspecies, substrate, lastSubstrateChange]
   )
 
   // --- Profile updates ---
@@ -124,12 +125,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
         pushUpdate({ sex: sexVal })
       } else if (field === "morph") {
         setGeckoMorph(value)
-        if (isDog) {
-          setDogBreed(value)
-          pushUpdate({ morph: value, breed: value })
-        } else {
-          pushUpdate({ morph: value })
-        }
+        pushUpdate({ morph: value })
       } else if (field === "born") {
         setGeckoBorn(value)
         pushUpdate({ born: value })
@@ -140,7 +136,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
       }
       showAction(`${field.toUpperCase()} UPDATED!`)
     },
-    [showAction, pushUpdate]
+    [showAction, pushUpdate, isBeetle]
   )
 
   // --- Custom Photo ---
@@ -166,6 +162,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
 
   const handleFeedConfirm = useCallback(
     (rows: FeedRow[], integrators: string[]) => {
+      if (!canAddLog()) { setActiveModal(null); return }
       const iso = getTodayISO()
       const dateStr = getDateStr()
       const summary = rows.map((r) => `${r.qty} ${r.feeder}`).join(", ")
@@ -182,7 +179,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
       showAction(`FED ${summary}!`)
       setActiveModal(null)
     },
-    [showAction, pushUpdate]
+    [showAction, pushUpdate, canAddLog]
   )
 
   // --- Weight ---
@@ -190,7 +187,8 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
 
   const handleWeightConfirm = useCallback(
     (newWeight: string) => {
-      const unit = isDog ? "kg" : "g"
+      if (!canAddLog()) { setActiveModal(null); return }
+      const unit = "g"
       const newEntry: HealthLogEntry = {
         id: String(Date.now()),
         type: "vet",
@@ -206,7 +204,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
       showAction(`WEIGHT: ${newWeight}${unit}`)
       setActiveModal(null)
     },
-    [showAction, pushUpdate, isDog]
+    [showAction, pushUpdate, canAddLog]
   )
 
   // --- Shed (gecko only) ---
@@ -214,6 +212,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
 
   const handleShedConfirm = useCallback(
     (quality: string) => {
+      if (!canAddLog()) { setActiveModal(null); return }
       const iso = getTodayISO()
       const dateStr = getDateStr()
       const newEntry: HealthLogEntry = {
@@ -228,7 +227,27 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
       showAction(`SHED: ${quality}!`)
       setActiveModal(null)
     },
-    [showAction, pushUpdate]
+    [showAction, pushUpdate, canAddLog]
+  )
+
+  // --- Water Change (gecko) ---
+  const handleWaterChange = useCallback(
+    () => {
+      if (!canAddLog()) return
+      const iso = getTodayISO()
+      const dateStr = getDateStr()
+      const newEntry: HealthLogEntry = {
+        id: String(Date.now()),
+        type: "water",
+        text: `WATER: ${dateStr} - CHANGED`,
+      }
+      const updatedLog = [...healthLogRef.current, newEntry]
+      setLastWaterChange(iso)
+      setHealthLog(updatedLog)
+      pushUpdate({ lastWaterChange: iso, healthLog: updatedLog })
+      showAction("WATER CHANGED!")
+    },
+    [showAction, pushUpdate, canAddLog]
   )
 
   // --- Substrate (beetle only) ---
@@ -236,6 +255,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
 
   const handleSubstrateConfirm = useCallback(
     (substrateType: string) => {
+      if (!canAddLog()) { setActiveModal(null); return }
       const iso = getTodayISO()
       const dateStr = getDateStr()
       const newEntry: HealthLogEntry = {
@@ -251,45 +271,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
       showAction(`SUBSTRATE: ${substrateType}!`)
       setActiveModal(null)
     },
-    [showAction, pushUpdate]
-  )
-
-  // --- Vet ---
-  const openVet = useCallback(() => setActiveModal("vet"), [])
-
-  const handleLogVet = useCallback(
-    (notes: string) => {
-      const iso = getTodayISO()
-      const dateStr = getDateStr()
-      const newEntry: HealthLogEntry = {
-        id: String(Date.now()),
-        type: "vet",
-        text: `VET: ${dateStr} - ${notes}`,
-      }
-      const updatedLog = [...healthLogRef.current, newEntry]
-      setLastVetCheckup(iso)
-      setHealthLog(updatedLog)
-      pushUpdate({ lastVetCheckup: iso, healthLog: updatedLog })
-      showAction(`VET: ${notes}`)
-    },
-    [showAction, pushUpdate]
-  )
-
-  const handleSetVaccination = useCallback(
-    (dateIso: string) => {
-      const dateStr = getDateStr()
-      const newEntry: HealthLogEntry = {
-        id: String(Date.now()),
-        type: "vet",
-        text: `VACC: ${dateStr} - NEXT DUE ${new Date(dateIso).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}`,
-      }
-      const updatedLog = [...healthLogRef.current, newEntry]
-      setNextVaccination(dateIso)
-      setHealthLog(updatedLog)
-      pushUpdate({ nextVaccination: dateIso, healthLog: updatedLog })
-      showAction("VACCINATION DATE SET!")
-    },
-    [showAction, pushUpdate]
+    [showAction, pushUpdate, canAddLog]
   )
 
   // --- Meds ---
@@ -297,6 +279,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
 
   const handleAddPrescription = useCallback(
     (medName: string, totalDays: number, dosesPerDay: number, notes: string) => {
+      if (!canAddLog()) return
       const rx: Prescription = {
         id: String(Date.now()),
         medName,
@@ -321,11 +304,12 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
       pushUpdate({ prescriptions: updatedRx, healthLog: updatedLog })
       showAction(`RX: ${medName} x${totalDays}d!`)
     },
-    [showAction, pushUpdate]
+    [showAction, pushUpdate, canAddLog]
   )
 
   const handleLogDose = useCallback(
     (rxId: string) => {
+      if (!canAddLog()) return
       const todayISO = getTodayISO()
       const dateStr = getDateStr()
       const updatedRx = prescriptionsRef.current.map((rx) => {
@@ -351,11 +335,12 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
         showAction(`${rx.medName}: DOSE ${doseNum}/${totalDoses}`)
       }
     },
-    [showAction, pushUpdate]
+    [showAction, pushUpdate, canAddLog]
   )
 
   const handleCompletePrescription = useCallback(
     (rxId: string) => {
+      if (!canAddLog()) return
       const dateStr = getDateStr()
       const updatedRx = prescriptionsRef.current.map((rx) =>
         rx.id === rxId ? { ...rx, completed: true } : rx
@@ -374,7 +359,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
         showAction(`${rx.medName}: ENDED`)
       }
     },
-    [showAction, pushUpdate]
+    [showAction, pushUpdate, canAddLog]
   )
 
   const closeModal = useCallback(() => setActiveModal(null), [])
@@ -385,14 +370,14 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
       if (tab === "FEED") openFeed()
       else if (tab === "WEIGHT") openWeight()
       else if (tab === "SHED") openShed()
+      else if (tab === "WATER") handleWaterChange()
       else if (tab === "SUBSTRATE") openSubstrate()
       else if (tab === "MEDS") openMeds()
-      else if (tab === "VET") openVet()
     },
-    [openFeed, openWeight, openShed, openSubstrate, openMeds, openVet]
+    [openFeed, openWeight, openShed, handleWaterChange, openSubstrate, openMeds]
   )
 
-  const titleLabel = "PET-DEX"
+  const titleLabel = "HERP-DEX"
 
   return (
     <div className="h-dvh bg-gb-darkest flex items-center justify-center p-2 sm:p-4">
@@ -485,12 +470,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
               </button>
 
               {/* Sprite frame - species-specific */}
-              {isDog ? (
-                <DogSprite
-                  customPhoto={customPhoto}
-                  onPhotoChange={handlePhotoChange}
-                />
-              ) : isBeetle ? (
+              {isBeetle ? (
                 <BeetleSprite
                   stage={beetleStage}
                   subspecies={subspecies}
@@ -517,14 +497,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
               />
 
               {/* Stats - species-specific */}
-              {isDog ? (
-                <DogStats
-                  weight={`${weight}kg`}
-                  lastVetCheckupIso={lastVetCheckup}
-                  nextVaccinationIso={nextVaccination}
-                  weightHistory={weightHistory}
-                />
-              ) : isBeetle ? (
+              {isBeetle ? (
                 <BeetleStats
                   weight={`${weight}g`}
                   lastFeedIso={lastFeed}
@@ -538,18 +511,16 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                   weight={`${weight}g`}
                   lastFeedIso={lastFeed}
                   lastShedIso={lastShed}
+                  lastWaterChangeIso={lastWaterChange}
                   weightHistory={weightHistory}
                 />
               )}
 
-              {/* Logs button */}
-              <button
-                type="button"
-                onClick={() => setShowLogs(true)}
-                className="w-full py-1.5 text-[7px] text-gb-darkest bg-gb-light hover:bg-gb-lightest border-2 border-gb-lightest tracking-wider text-center transition-colors font-bold"
-              >
-                LOGS
-              </button>
+              {/* Action buttons - species-specific */}
+              <SelectBar
+                tabs={isBeetle ? BEETLE_TABS : GECKO_TABS}
+                onSelect={handleTabSelect}
+              />
 
               {/* Action feedback toast */}
               {lastAction && (
@@ -564,11 +535,26 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                 </div>
               )}
 
-              {/* Tab buttons - species-specific */}
-              <SelectBar
-                tabs={isDog ? DOG_TABS : isBeetle ? BEETLE_TABS : GECKO_TABS}
-                onSelect={handleTabSelect}
-              />
+              {/* Logs button */}
+              <button
+                type="button"
+                onClick={() => setShowLogs(true)}
+                className="w-full py-1.5 text-[7px] text-gb-darkest bg-gb-light hover:bg-gb-lightest border-2 border-gb-lightest tracking-wider text-center transition-colors font-bold"
+              >
+                LOGS
+              </button>
+
+              {/* Smart Terrarium button */}
+              <button
+                type="button"
+                onClick={() => setShowSmartHome(true)}
+                className="w-full py-1.5 text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light tracking-wider text-center transition-colors flex items-center justify-center gap-1"
+              >
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                  <path d="M8 1L1 7h2v6h4v-4h2v4h4V7h2L8 1z" />
+                </svg>
+                SMART TERRARIUM
+              </button>
               </>
               )}
             </div>
@@ -585,7 +571,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                 currentWeight={weight}
                 onConfirm={handleWeightConfirm}
                 onCancel={closeModal}
-                unit={isDog ? "kg" : "g"}
+                unit="g"
               />
             )}
             {activeModal === "shed" && !isBeetle && (
@@ -612,14 +598,8 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                 onClose={closeModal}
               />
             )}
-            {activeModal === "vet" && isDog && (
-              <VetModal
-                lastVetCheckup={lastVetCheckup}
-                nextVaccination={nextVaccination}
-                onLogVet={handleLogVet}
-                onSetVaccination={handleSetVaccination}
-                onCancel={closeModal}
-              />
+            {showSmartHome && (
+              <SmartHomePopup onClose={() => setShowSmartHome(false)} />
             )}
           </div>
         </div>
@@ -627,7 +607,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
         {/* Bottom shell detail */}
         <div className="flex items-center px-3 mt-3 mb-1">
           <span className="text-[6px] text-neutral-600 tracking-[0.15em] flex-1">
-            PET-DEX
+            HERP-DEX
           </span>
           {onOpenChat && (
             <button
@@ -640,7 +620,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                 <rect x="0" y="1" width="7" height="5" rx="0" />
                 <polygon points="1,6 3,6 1,8" />
               </svg>
-              PET-AI
+              HERP-AI
             </button>
           )}
           <div className="flex gap-[3px] flex-1 justify-end" aria-hidden="true">
@@ -653,6 +633,37 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function SmartHomePopup({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="pixel-border bg-gb-darkest p-4 flex flex-col items-center gap-3 max-w-[220px]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor" className="text-gb-light" aria-hidden="true">
+          <path d="M8 1L1 7h2v6h4v-4h2v4h4V7h2L8 1z" />
+        </svg>
+        <div className="text-[8px] text-gb-lightest tracking-wider text-center">
+          SMART TERRARIUM
+        </div>
+        <div className="text-[7px] text-gb-light text-center leading-relaxed">
+          {"Feature's cooking, stay tuned!"}
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light px-4 py-1 tracking-wider transition-colors"
+        >
+          OK
+        </button>
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { Prescription } from "./types"
 
 interface MedsModalProps {
@@ -23,6 +23,12 @@ export function MedsModal({
   const [totalDays, setTotalDays] = useState("")
   const [dosesPerDay, setDosesPerDay] = useState("1")
   const [notes, setNotes] = useState("")
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    document.addEventListener("keydown", h)
+    return () => document.removeEventListener("keydown", h)
+  }, [onClose])
 
   const active = prescriptions.filter((rx) => !rx.completed)
   const completed = prescriptions.filter((rx) => rx.completed)

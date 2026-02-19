@@ -8,8 +8,10 @@ import { PinScreen } from "./pin-screen"
 import { ChatModal } from "./chat-modal"
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase"
 
-const STORAGE_KEY = "pet-dex-animals"
-const PIN_KEY = "pet-dex-pin"
+const STORAGE_KEY = "herp-dex-animals"
+const PIN_KEY = "herp-dex-pin"
+const MAX_ANIMALS = 15
+const MAX_LOGS_PER_DAY = 50
 
 const DEFAULT_ANIMAL: AnimalProfile = {
   id: "1",
@@ -68,6 +70,7 @@ function makeGeckoDefaults(id: string, dexNumber: number): AnimalProfile {
     weight: "0",
     lastFeed: new Date().toISOString().slice(0, 10),
     lastShed: new Date().toISOString().slice(0, 10),
+    lastWaterChange: new Date().toISOString().slice(0, 10),
     healthLog: [],
     prescriptions: [],
     weightHistory: [],
@@ -99,34 +102,6 @@ function makeBeetleDefaults(id: string, dexNumber: number): AnimalProfile {
     stage: "LARVA",
     substrate: "OAK FLAKE SOIL",
     lastSubstrateChange: today,
-  }
-}
-
-function makeDogDefaults(id: string, dexNumber: number): AnimalProfile {
-  const today = new Date().toISOString().slice(0, 10)
-  return {
-    id,
-    dexNumber,
-    name: "NEW DOG",
-    sex: "?",
-    species: "DOG",
-    morph: "ALASKAN MALAMUTE",
-    breed: "ALASKAN MALAMUTE",
-    born: new Date().toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-    }),
-    weight: "0",
-    lastFeed: today,
-    lastShed: today,
-    healthLog: [],
-    prescriptions: [],
-    weightHistory: [],
-    image: "/images/dog-sprite.png",
-    breed: "ALASKAN MALAMUTE",
-    lastVetCheckup: "",
-    nextVaccination: "",
   }
 }
 
@@ -270,18 +245,15 @@ export function GeckoDexApp() {
   const handleAdd = useCallback(
     (species: string) => {
       setAnimals((prev) => {
-        // Compute next unique id (max existing + 1, always safe)
+        if (prev.length >= MAX_ANIMALS) return prev
+
         const maxId = prev.reduce((max, a) => Math.max(max, parseInt(a.id, 10) || 0), 0)
         const id = String(maxId + 1)
-
-        // New animal always gets the next contiguous dex number
         const dexNumber = prev.length + 1
 
         let newAnimal: AnimalProfile
         if (species === "RHINO BEETLE") {
           newAnimal = makeBeetleDefaults(id, dexNumber)
-        } else if (species === "DOG") {
-          newAnimal = makeDogDefaults(id, dexNumber)
         } else {
           newAnimal = makeGeckoDefaults(id, dexNumber)
         }
@@ -328,6 +300,56 @@ export function GeckoDexApp() {
     [scheduleCloudSave]
   )
 
+  // Export data as JSON download
+  const handleExport = useCallback(() => {
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      animals,
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `herp-dex-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [animals])
+
+  // Import data from JSON file
+  const handleImport = useCallback(() => {
+    const input = document.createElement("input")
+    input.type = "file"
+    input.accept = ".json"
+    input.onchange = () => {
+      const file = input.files?.[0]
+      if (!file) return
+      const reader = new FileReader()
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result as string)
+          const imported = parsed.animals ?? parsed
+          if (!Array.isArray(imported) || imported.length === 0) {
+            alert("No valid animal data found in file.")
+            return
+          }
+          if (!confirm(`Import ${imported.length} animal(s)? This will replace your current data.`)) return
+          const validated = imported.map((a: AnimalProfile, i: number) => ({
+            ...a,
+            id: a.id ?? String(i + 1),
+            dexNumber: i + 1,
+          }))
+          setAnimals(validated)
+          scheduleCloudSave(validated)
+        } catch {
+          alert("Failed to read backup file. Make sure it is a valid HERP-DEX export.")
+        }
+      }
+      reader.readAsText(file)
+    }
+    input.click()
+  }, [scheduleCloudSave])
+
   // Chat state
   const [showChat, setShowChat] = useState(false)
   const handleOpenChat = useCallback(() => setShowChat(true), [])
@@ -369,6 +391,8 @@ export function GeckoDexApp() {
         onReorder={handleReorder}
         onChangePin={cloudEnabled ? handleChangePin : undefined}
         onOpenChat={handleOpenChat}
+        onExport={handleExport}
+        onImport={handleImport}
       />
       {showChat && <ChatModal animals={animals} onClose={handleCloseChat} />}
     </>

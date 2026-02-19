@@ -16,6 +16,12 @@ function ShedModal({ lastShed, onConfirm, onCancel }: ShedModalProps) {
   const [animFrame, setAnimFrame] = useState(0)
   const [confirmed, setConfirmed] = useState(false)
 
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel() }
+    document.addEventListener("keydown", h)
+    return () => document.removeEventListener("keydown", h)
+  }, [onCancel])
+
   // Pixel shedding animation loop
   useEffect(() => {
     const interval = setInterval(() => {

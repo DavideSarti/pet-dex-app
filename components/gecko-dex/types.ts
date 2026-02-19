@@ -1,4 +1,4 @@
-export type HealthLogType = "feeding" | "meds" | "vet" | "shed" | "substrate"
+export type HealthLogType = "feeding" | "meds" | "vet" | "shed" | "substrate" | "water"
 
 export interface HealthLogEntry {
   id: string
@@ -41,6 +41,7 @@ export interface AnimalProfile {
   weight: string
   lastFeed: string       // ISO YYYY-MM-DD
   lastShed: string       // ISO YYYY-MM-DD (gecko-specific)
+  lastWaterChange?: string // ISO YYYY-MM-DD (gecko-specific)
   healthLog: HealthLogEntry[]
   prescriptions: Prescription[]
   weightHistory: WeightEntry[]
@@ -52,8 +53,4 @@ export interface AnimalProfile {
   stage?: BeetleStage
   substrate?: string           // e.g. "OAK FLAKE SOIL"
   lastSubstrateChange?: string // ISO YYYY-MM-DD
-  // Dog-specific fields
-  breed?: string               // e.g. "ALASKAN MALAMUTE"
-  lastVetCheckup?: string      // ISO YYYY-MM-DD
-  nextVaccination?: string     // ISO YYYY-MM-DD
 }

@@ -9,6 +9,7 @@ interface StatsGridProps {
   weight: string
   lastFeedIso: string
   lastShedIso: string
+  lastWaterChangeIso?: string
   weightHistory: WeightEntry[]
 }
 
@@ -20,7 +21,7 @@ function formatDateWithDaysAgo(iso: string): string {
   return `${ddmm} - ${ago}`
 }
 
-export function StatsGrid({ weight, lastFeedIso, lastShedIso, weightHistory }: StatsGridProps) {
+export function StatsGrid({ weight, lastFeedIso, lastShedIso, lastWaterChangeIso, weightHistory }: StatsGridProps) {
   const [showChart, setShowChart] = useState(false)
 
   return (
@@ -33,6 +34,9 @@ export function StatsGrid({ weight, lastFeedIso, lastShedIso, weightHistory }: S
           <WeightRow value={weight} onChartOpen={() => setShowChart(true)} />
           <StatRow label="LAST FEED" value={formatDateWithDaysAgo(lastFeedIso)} />
           <StatRow label="LAST SHED" value={formatDateWithDaysAgo(lastShedIso)} />
+          {lastWaterChangeIso && (
+            <StatRow label="WATER CHG" value={formatDateWithDaysAgo(lastWaterChangeIso)} />
+          )}
         </div>
       </div>
 
@@ -47,7 +51,7 @@ function WeightRow({ value, onChartOpen }: { value: string; onChartOpen: () => v
   return (
     <div className="flex items-center text-[8px] leading-relaxed">
       <span className="text-gb-light mr-1" aria-hidden="true">{">"}</span>
-      <span className="text-gb-dark w-[60px] shrink-0">WEIGHT:</span>
+      <span className="text-gb-dark shrink-0">WEIGHT:</span>
       <span className="text-gb-light flex-1">{value}</span>
       <button
         type="button"
@@ -68,7 +72,7 @@ function StatRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center text-[8px] leading-relaxed">
       <span className="text-gb-light mr-1" aria-hidden="true">{">"}</span>
-      <span className="text-gb-dark w-[60px] shrink-0">{label}:</span>
+      <span className="text-gb-dark shrink-0">{label}:</span>
       <span className="text-gb-light">{value}</span>
     </div>
   )

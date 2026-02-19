@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import type { WeightEntry } from "./types"
 
 interface WeightChartProps {
@@ -8,6 +9,11 @@ interface WeightChartProps {
 }
 
 export function WeightChart({ history, onClose }: WeightChartProps) {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    document.addEventListener("keydown", h)
+    return () => document.removeEventListener("keydown", h)
+  }, [onClose])
   // Sort by date
   const sorted = [...history].sort((a, b) => a.date.localeCompare(b.date))
 

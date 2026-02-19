@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect } from "react"
+
 interface SpeciesPickerProps {
   onSelect: (species: string) => void
   onCancel: () => void
@@ -10,20 +12,23 @@ const SPECIES = [
     id: "LEOPARD GECKO",
     icon: "🦎",
     label: "Reptile",
+    available: true,
   },
   {
     id: "RHINO BEETLE",
     icon: "🪲",
     label: "Insect",
-  },
-  {
-    id: "DOG",
-    icon: "🐕",
-    label: "Canine",
+    available: false,
   },
 ] as const
 
 export function SpeciesPicker({ onSelect, onCancel }: SpeciesPickerProps) {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel() }
+    document.addEventListener("keydown", h)
+    return () => document.removeEventListener("keydown", h)
+  }, [onCancel])
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
@@ -42,15 +47,20 @@ export function SpeciesPicker({ onSelect, onCancel }: SpeciesPickerProps) {
             <button
               key={sp.id}
               type="button"
-              onClick={() => onSelect(sp.id)}
-              className="pixel-border bg-gb-dark/10 hover:bg-gb-dark/30 p-3 flex flex-col items-center gap-2 transition-colors group"
+              onClick={() => sp.available && onSelect(sp.id)}
+              disabled={!sp.available}
+              className={`pixel-border p-3 flex flex-col items-center gap-2 transition-colors group ${
+                sp.available
+                  ? "bg-gb-dark/10 hover:bg-gb-dark/30"
+                  : "bg-gb-darkest/40 opacity-40 cursor-not-allowed"
+              }`}
             >
               <span className="text-[22px]">{sp.icon}</span>
-              <span className="text-[8px] text-gb-lightest group-hover:text-gb-lightest tracking-wider text-center leading-tight">
+              <span className="text-[8px] text-gb-lightest tracking-wider text-center leading-tight">
                 {sp.id}
               </span>
               <span className="text-[6px] text-gb-dark tracking-wider">
-                {sp.label}
+                {sp.available ? sp.label : "COMING SOON"}
               </span>
             </button>
           ))}

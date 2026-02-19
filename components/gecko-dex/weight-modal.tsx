@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface WeightModalProps {
   currentWeight: string
@@ -13,6 +13,12 @@ function WeightModal({ currentWeight, onConfirm, onCancel, unit = "g" }: WeightM
   const [digits, setDigits] = useState<string>(
     currentWeight.replace(/[a-zA-Z]/g, "")
   )
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel() }
+    document.addEventListener("keydown", h)
+    return () => document.removeEventListener("keydown", h)
+  }, [onCancel])
 
   const handleConfirm = () => {
     if (digits !== "0" && digits !== "") onConfirm(digits)

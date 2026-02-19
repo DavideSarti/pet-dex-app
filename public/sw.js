@@ -1,12 +1,8 @@
-const CACHE_NAME = "pet-dex-v1";
+const CACHE_NAME = "herp-dex-v2";
 
 const PRECACHE_URLS = [
   "/",
   "/manifest.json",
-  "/icons/icon-192x192.png",
-  "/icons/icon-512x512.png",
-  "/images/gecko-sprite.png",
-  "/images/beetle-sprite.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -30,15 +26,21 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+
   if (event.request.method !== "GET") return;
+  if (url.pathname.startsWith("/api/")) return;
+  if (url.origin !== self.location.origin) return;
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, clone);
-        });
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, clone);
+          });
+        }
         return response;
       })
       .catch(() => caches.match(event.request))

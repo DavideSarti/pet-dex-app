@@ -1,8 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport } from "ai"
+import { useState, useRef, useEffect, useCallback } from "react"
 import type { AnimalProfile } from "./types"
 
 interface ChatModalProps {
@@ -10,47 +8,19 @@ interface ChatModalProps {
   onClose: () => void
 }
 
-function getUIMessageText(msg: {
-  parts?: Array<{ type: string; text?: string }>
-  content?: string
-}): string {
-  if (msg.parts && Array.isArray(msg.parts)) {
-    const fromParts = msg.parts
-      .filter((p): p is { type: "text"; text: string } => p.type === "text" && typeof p.text === "string")
-      .map((p) => p.text)
-      .join("")
-    if (fromParts) return fromParts
-  }
-  if (typeof (msg as { content?: string }).content === "string") {
-    return (msg as { content: string }).content
-  }
-  return ""
+interface ChatMessage {
+  id: string
+  role: "user" | "assistant"
+  content: string
 }
 
 function ChatModal({ animals, onClose }: ChatModalProps) {
   const [input, setInput] = useState("")
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
-
-  const { messages, sendMessage, status, error, clearError, setMessages } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/gecko-chat" }),
-    messages: [],
-  })
-
-  const isLoading = status === "streaming" || status === "submitted"
-
-  useEffect(() => {
-    if (!error) return
-    const errMsg = error instanceof Error ? error.message : String(error)
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `error-${Date.now()}`,
-        role: "assistant",
-        parts: [{ type: "text" as const, text: `ERROR: ${errMsg}. Check your API key and restart the dev server.` }],
-      },
-    ])
-    clearError()
-  }, [error, setMessages, clearError])
+  const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -58,28 +28,92 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
     }
   }, [messages])
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [onClose])
+
+  const handleSubmit = useCallback(async () => {
     if (!input.trim() || isLoading) return
-    sendMessage(
-      { text: input },
-      {
-        body: { animalsData: animals },
-      }
-    )
+    const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: "user", content: input.trim() }
+    const allMessages = [...messages, userMsg]
+    setMessages(allMessages)
     setInput("")
-  }
+    setIsLoading(true)
+    setError(null)
+
+    const assistantId = `a-${Date.now()}`
+    setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }])
+
+    try {
+      abortRef.current = new AbortController()
+      const res = await fetch("/api/gecko-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: allMessages.map((m) => ({ role: m.role, content: m.content })),
+          animalsData: animals,
+        }),
+        signal: abortRef.current.signal,
+      })
+
+      if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(errText)
+      }
+
+      const reader = res.body!.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ""
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() || ""
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue
+          const payload = line.slice(6).trim()
+          if (!payload || payload === "[DONE]") continue
+          try {
+            const parsed = JSON.parse(payload)
+            if (parsed.text) {
+              setMessages((prev) =>
+                prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + parsed.text } : m))
+              )
+            }
+          } catch {}
+        }
+      }
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(msg)
+      setMessages((prev) =>
+        prev.map((m) => (m.id === assistantId ? { ...m, content: `ERROR: ${msg}` } : m))
+      )
+    } finally {
+      setIsLoading(false)
+      abortRef.current = null
+    }
+  }, [input, isLoading, messages, animals])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="w-full max-w-[340px] max-h-[80vh] flex flex-col bg-gb-darkest p-2 pixel-border" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-[340px] max-h-[80vh] flex flex-col bg-gb-darkest p-3 pixel-border" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-1 pb-1.5 border-b border-gb-dark">
-          <div className="text-[8px] text-gb-lightest tracking-wider">
-            {"== PET-AI =="}
+        <div className="flex items-center justify-between px-1.5 pb-2 border-b border-gb-dark">
+          <div className="text-[10px] text-gb-lightest tracking-wider">
+            {"== HERP-AI =="}
           </div>
           <button
             onClick={onClose}
-            className="text-[8px] text-gb-dark hover:text-gb-light transition-colors"
+            className="text-[10px] text-gb-dark hover:text-gb-light transition-colors"
             aria-label="Close chat"
           >
             {"[X]"}
@@ -88,21 +122,19 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
 
         {/* API error */}
         {error && (
-          <div className="mx-1.5 mb-1.5 rounded border border-red-900/50 bg-red-950/30 px-2 py-1.5 text-[7px] text-red-300">
-            <span className="font-bold">SETUP NEEDED</span>
-            <div className="mt-1 text-[6px] text-red-200 leading-relaxed">
-              Chat needs a Gemini API key. Do this once:
+          <div className="mx-1.5 mb-1.5 rounded border border-red-900/50 bg-red-950/30 px-2.5 py-2 text-[9px] text-red-300">
+            <span className="font-bold">{error.includes("401") || error.includes("missing") ? "SETUP NEEDED" : "API ERROR"}</span>
+            <div className="mt-1 text-[8px] text-red-200 leading-relaxed">
+              {error.includes("401") || error.includes("missing")
+                ? "Chat needs a Gemini API key. Set GOOGLE_GENERATIVE_AI_API_KEY in your environment."
+                : error.includes("429") || error.includes("RESOURCE_EXHAUSTED")
+                ? "Rate limit reached. Wait a minute and try again."
+                : "Something went wrong. Try again."}
             </div>
-            <ol className="mt-1 text-[6px] text-red-400 list-decimal list-inside space-y-0.5">
-              <li>Get a key: aistudio.google.com → API keys → Create</li>
-              <li>Open file: .env.local (same folder as package.json)</li>
-              <li>Add: GOOGLE_GENERATIVE_AI_API_KEY=your-key-here</li>
-              <li>Save, then restart the dev server</li>
-            </ol>
             <button
               type="button"
-              onClick={() => clearError()}
-              className="mt-1 text-[6px] text-gb-light underline"
+              onClick={() => setError(null)}
+              className="mt-1 text-[8px] text-gb-light underline"
             >
               {"[DISMISS]"}
             </button>
@@ -111,14 +143,14 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
 
         {/* Welcome hint */}
         {messages.length === 0 && !error && (
-          <div className="px-1 py-2 text-[6px] text-gb-dark text-center leading-relaxed">
+          <div className="px-1.5 py-2.5 text-[8px] text-gb-dark text-center leading-relaxed">
             {"ASK ME ANYTHING ABOUT"}<br />
             {"YOUR PET COLLECTION!"}<br />
             <span className="text-gb-dark/60">
               {"I HAVE ACCESS TO ALL"}<br />
               {`${animals.length} ANIMAL${animals.length !== 1 ? "S" : ""} IN YOUR DEX`}
             </span>
-            <div className="mt-1.5 text-gb-dark/70">
+            <div className="mt-2 text-gb-dark/70">
               {"TRY: \"WHO NEEDS FEEDING?\""}<br />
               {"OR \"HEALTH SUMMARY\""}<br />
               {"OR \"HEAVIEST PET?\""}
@@ -129,39 +161,38 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
         {/* Messages area */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto py-1.5 flex flex-col gap-1.5 min-h-0"
+          className="flex-1 overflow-y-auto py-2 flex flex-col gap-2 min-h-0"
         >
           {messages.map((msg) => {
-            const text = getUIMessageText(msg)
             const isUser = msg.role === "user"
-            if (!text.trim()) return null
+            if (!msg.content.trim()) return null
             return (
               <div
                 key={msg.id}
-                className={`text-[7px] leading-relaxed px-1.5 py-1 ${
+                className={`text-[9px] leading-relaxed px-2 py-1.5 ${
                   isUser
                     ? "bg-gb-dark/30 text-gb-light self-end max-w-[85%]"
                     : "bg-gb-dark/15 text-gb-lightest self-start max-w-[90%]"
                 } border ${isUser ? "border-gb-dark" : "border-gb-dark/50"}`}
               >
-                <span className="text-gb-dark text-[6px]">
+                <span className="text-gb-dark text-[8px]">
                   {isUser ? "YOU> " : "AI> "}
                 </span>
-                {text}
+                {msg.content}
               </div>
             )
           })}
 
           {isLoading && messages.length > 0 && (
-            <div className="text-[7px] text-gb-dark px-1.5 self-start">
+            <div className="text-[9px] text-gb-dark px-2 self-start">
               <span className="animate-blink">{"..."}</span>
             </div>
           )}
         </div>
 
         {/* Input */}
-        <div className="flex items-center gap-1 pt-1.5 border-t border-gb-dark">
-          <span className="text-[7px] text-gb-dark shrink-0">{">"}</span>
+        <div className="flex items-center gap-1.5 pt-2 border-t border-gb-dark">
+          <span className="text-[9px] text-gb-dark shrink-0">{">"}</span>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -169,14 +200,14 @@ function ChatModal({ animals, onClose }: ChatModalProps) {
               if (e.key === "Enter") handleSubmit()
             }}
             placeholder="TYPE HERE..."
-            className="flex-1 bg-gb-dark/20 text-gb-lightest border border-gb-dark text-[7px] px-1.5 py-1 font-mono outline-none placeholder:text-gb-dark/50 focus:border-gb-light min-w-0"
+            className="flex-1 bg-gb-dark/20 text-gb-lightest border border-gb-dark text-[9px] px-2 py-1.5 font-mono outline-none placeholder:text-gb-dark/50 focus:border-gb-light min-w-0"
             disabled={isLoading}
             aria-label="Chat message input"
           />
           <button
             onClick={handleSubmit}
             disabled={isLoading || !input.trim()}
-            className="text-[7px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light px-1.5 py-1 transition-colors disabled:opacity-30"
+            className="text-[9px] text-gb-dark hover:text-gb-light border border-gb-dark hover:border-gb-light px-2 py-1.5 transition-colors disabled:opacity-30"
             aria-label="Send message"
           >
             {">>"}

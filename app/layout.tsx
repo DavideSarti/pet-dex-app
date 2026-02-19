@@ -11,13 +11,13 @@ const pressStart2P = Press_Start_2P({
 })
 
 export const metadata: Metadata = {
-  title: 'PET-DEX',
+  title: 'HERP-DEX',
   description: 'Retro 8-bit Pet Tracker - Gotta Track Em All!',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'PET-DEX',
+    title: 'HERP-DEX',
   },
   icons: {
     icon: '/icons/icon-192x192.png',
@@ -29,8 +29,6 @@ export const viewport: Viewport = {
   themeColor: '#0f380f',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 }
 
 export default function RootLayout({

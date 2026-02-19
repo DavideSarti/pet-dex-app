@@ -32,7 +32,7 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
       const img = new window.Image()
       img.onload = () => {
         const canvas = document.createElement("canvas")
-        const MAX = 300
+        const MAX = 200
         let w = img.width
         let h = img.height
         if (w > MAX || h > MAX) {
@@ -45,7 +45,13 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
         const ctx = canvas.getContext("2d")
         if (ctx) {
           ctx.drawImage(img, 0, 0, w, h)
-          onPhotoChange?.(canvas.toDataURL("image/jpeg", 0.8))
+          let quality = 0.7
+          let dataUrl = canvas.toDataURL("image/jpeg", quality)
+          while (dataUrl.length > 150_000 && quality > 0.3) {
+            quality -= 0.1
+            dataUrl = canvas.toDataURL("image/jpeg", quality)
+          }
+          onPhotoChange?.(dataUrl)
         }
       }
       img.src = reader.result as string
@@ -72,7 +78,7 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
       {/* Pixel frame with overlaid buttons */}
       <div className="relative">
         <div className="pixel-border bg-gb-darkest p-[3px]">
-          <div className="relative w-[147px] h-[124px] bg-gb-dark flex items-center justify-center overflow-hidden">
+          <div className="relative w-[176px] h-[149px] bg-gb-dark flex items-center justify-center overflow-hidden">
             {customPhoto ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={customPhoto} alt="Custom beetle photo" className="w-full h-full object-cover" />
@@ -80,8 +86,8 @@ export function BeetleSprite({ stage, subspecies, onSubspeciesChange, customPhot
               <Image
                 src="/images/beetle-sprite.png"
                 alt="Pixel art of a rhino beetle"
-                width={147}
-                height={124}
+                width={176}
+                height={149}
                 className="object-contain"
                 style={{ imageRendering: "pixelated" }}
                 priority

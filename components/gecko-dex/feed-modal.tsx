@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 const FEEDERS = ["MEALWORMS", "CRICKETS", "ROACHES", "CUSTOM"] as const
 
@@ -30,8 +30,14 @@ function FeedModal({ onConfirm, onCancel }: FeedModalProps) {
   })
   const [customIntegrator, setCustomIntegrator] = useState("")
 
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel() }
+    document.addEventListener("keydown", h)
+    return () => document.removeEventListener("keydown", h)
+  }, [onCancel])
+
   const getIntegratorsList = (): string[] => {
-    const list = INTEGRATOR_OPTIONS.filter((key) => integrators[key]).slice()
+    const list: string[] = INTEGRATOR_OPTIONS.filter((key) => integrators[key]).slice()
     if (customIntegrator.trim()) list.push(customIntegrator.trim())
     return list
   }

@@ -13,22 +13,76 @@ interface GridViewProps {
   onReorder: (animals: AnimalProfile[]) => void
   onChangePin?: () => void
   onOpenChat?: () => void
+  onExport?: () => void
+  onImport?: () => void
 }
 
-export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChangePin, onOpenChat }: GridViewProps) {
+export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChangePin, onOpenChat, onExport, onImport }: GridViewProps) {
   const [showSpeciesPicker, setShowSpeciesPicker] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const dragOrigin = useRef<{ x: number; y: number } | null>(null)
-  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const pressOrigin = useRef<{ x: number; y: number } | null>(null)
+  const grabDelta = useRef<{ x: number; y: number } | null>(null)
+  const lastPointerRef = useRef<{ x: number; y: number } | null>(null)
+  const dragOffsetRef = useRef({ x: 0, y: 0 })
   const isDragging = useRef(false)
   const lastSwapIdx = useRef<number | null>(null)
-
-  // FLIP animation refs
+  const suppressClickUntil = useRef(0)
+  const dragIdRef = useRef<string | null>(null)
+  const lastSwapTime = useRef(0)
+  const animalsRef = useRef(animals)
+  animalsRef.current = animals
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const prevRects = useRef<Map<string, DOMRect>>(new Map())
+  const [flipTick, setFlipTick] = useState(0)
 
-  const LONG_PRESS_MS = 400
+  // After a reorder, animate non-dragged cards and fix dragged card position
+  useLayoutEffect(() => {
+    if (flipTick === 0) return
+    const prev = prevRects.current
+    if (prev.size === 0) return
+    prevRects.current = new Map()
+
+    const currentDragId = dragIdRef.current
+
+    cardRefs.current.forEach((el, id) => {
+      if (!el || id === currentDragId) return
+      const oldRect = prev.get(id)
+      if (!oldRect) return
+      const newRect = el.getBoundingClientRect()
+      const dx = oldRect.left - newRect.left
+      const dy = oldRect.top - newRect.top
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return
+
+      el.style.transition = "none"
+      el.style.transform = `translate(${dx}px, ${dy}px)`
+
+      requestAnimationFrame(() => {
+        el.style.transition = "transform 250ms ease-out"
+        el.style.transform = ""
+      })
+    })
+
+    // Recompute dragged card offset so it stays exactly under the finger
+    if (currentDragId && lastPointerRef.current && grabDelta.current) {
+      const dragEl = cardRefs.current.get(currentDragId)
+      if (dragEl) {
+        const rect = dragEl.getBoundingClientRect()
+        const baseLeft = rect.left - dragOffsetRef.current.x
+        const baseTop = rect.top - dragOffsetRef.current.y
+        const newOff = {
+          x: lastPointerRef.current.x - grabDelta.current.x - baseLeft,
+          y: lastPointerRef.current.y - grabDelta.current.y - baseTop,
+        }
+        dragOffsetRef.current = newOff
+        setDragOffset(newOff)
+      }
+    }
+  }, [flipTick])
+
+  const LONG_PRESS_MS = 500
 
   const clearLongPress = useCallback(() => {
     if (longPressTimer.current) {
@@ -37,114 +91,181 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
     }
   }, [])
 
-  // Snapshot card positions before React re-renders (for FLIP)
-  const snapshotPositions = useCallback(() => {
-    const rects = new Map<string, DOMRect>()
-    cardRefs.current.forEach((el, id) => {
-      if (el) rects.set(id, el.getBoundingClientRect())
-    })
-    prevRects.current = rects
+  const endDrag = useCallback(() => {
+    isDragging.current = false
+    pressOrigin.current = null
+    grabDelta.current = null
+    lastPointerRef.current = null
+    dragOffsetRef.current = { x: 0, y: 0 }
+    lastSwapIdx.current = null
+    dragIdRef.current = null
+    setDragId(null)
+    setDragOffset({ x: 0, y: 0 })
   }, [])
 
-  // After React re-renders, animate cards from old to new positions
-  useLayoutEffect(() => {
-    const prev = prevRects.current
-    if (prev.size === 0) return
+  const onWindowPointerMove = useCallback(
+    (e: PointerEvent) => {
+      if (!isDragging.current || !grabDelta.current) return
 
-    cardRefs.current.forEach((el, id) => {
-      if (!el || id === dragId) return
-      const oldRect = prev.get(id)
-      if (!oldRect) return
-      const newRect = el.getBoundingClientRect()
-      const dx = oldRect.left - newRect.left
-      const dy = oldRect.top - newRect.top
-      if (dx === 0 && dy === 0) return
+      lastPointerRef.current = { x: e.clientX, y: e.clientY }
 
-      el.style.transition = "none"
-      el.style.transform = `translate(${dx}px, ${dy}px)`
+      const currentDragId = dragIdRef.current
+      if (!currentDragId) return
 
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          el.style.transition = "transform 0.25s ease"
-          el.style.transform = "translate(0, 0)"
-        })
+      const dragEl = cardRefs.current.get(currentDragId)
+      if (!dragEl) return
+
+      // Card's layout position = getBoundingClientRect minus current transform
+      const rect = dragEl.getBoundingClientRect()
+      const baseLeft = rect.left - dragOffsetRef.current.x
+      const baseTop = rect.top - dragOffsetRef.current.y
+
+      // Offset needed so the card follows the pointer with the original grab point
+      const newOff = {
+        x: e.clientX - grabDelta.current.x - baseLeft,
+        y: e.clientY - grabDelta.current.y - baseTop,
+      }
+      dragOffsetRef.current = newOff
+      setDragOffset(newOff)
+
+      // Dragged card's visual bounds (always pointer-anchored, independent of DOM)
+      const dragVisual = {
+        left: e.clientX - grabDelta.current.x,
+        right: e.clientX - grabDelta.current.x + rect.width,
+        top: e.clientY - grabDelta.current.y,
+        bottom: e.clientY - grabDelta.current.y + rect.height,
+      }
+
+      // Find which non-dragged card the dragged card overlaps most with
+      let bestIdx = -1
+      let bestOverlap = 0
+      cardRefs.current.forEach((el, id) => {
+        if (id === currentDragId) return
+        const idx = parseInt(el.dataset.cardIdx ?? "", 10)
+        if (isNaN(idx)) return
+        const r = el.getBoundingClientRect()
+        const overlapX = Math.max(0, Math.min(dragVisual.right, r.right) - Math.max(dragVisual.left, r.left))
+        const overlapY = Math.max(0, Math.min(dragVisual.bottom, r.bottom) - Math.max(dragVisual.top, r.top))
+        const area = overlapX * overlapY
+        if (area > bestOverlap) {
+          bestOverlap = area
+          bestIdx = idx
+        }
       })
-    })
 
-    prevRects.current = new Map()
-  })
+      // Only swap when the overlap is at least 40% of the target card's area
+      if (bestIdx === -1) return
+      const targetEl = Array.from(cardRefs.current.values()).find(
+        (el) => parseInt(el.dataset.cardIdx ?? "", 10) === bestIdx
+      )
+      if (!targetEl) return
+      const targetRect = targetEl.getBoundingClientRect()
+      const targetArea = targetRect.width * targetRect.height
+      if (bestOverlap < targetArea * 0.4) return
+
+      if (bestIdx === lastSwapIdx.current) return
+      const now = Date.now()
+      if (now - lastSwapTime.current < 500) return
+      lastSwapTime.current = now
+
+      const currentAnimals = animalsRef.current
+      const fromIdx = currentAnimals.findIndex((a) => a.id === currentDragId)
+      const targetIdx = bestIdx
+      if (fromIdx === -1 || fromIdx === targetIdx) return
+
+      // Snapshot ALL card positions before reorder (for FLIP animation)
+      const rects = new Map<string, DOMRect>()
+      cardRefs.current.forEach((el, id) => {
+        if (el) rects.set(id, el.getBoundingClientRect())
+      })
+      prevRects.current = rects
+
+      const reordered = [...currentAnimals]
+      const [moved] = reordered.splice(fromIdx, 1)
+      reordered.splice(targetIdx, 0, moved)
+      onReorder(reordered)
+      setFlipTick((t) => t + 1)
+      lastSwapIdx.current = targetIdx
+    },
+    [onReorder]
+  )
+
+  const onWindowPointerUp = useCallback(() => {
+    if (isDragging.current) {
+      suppressClickUntil.current = Date.now() + 300
+    }
+    endDrag()
+    window.removeEventListener("pointermove", onWindowPointerMove)
+    window.removeEventListener("pointerup", onWindowPointerUp)
+  }, [endDrag, onWindowPointerMove])
+
+  const startDrag = useCallback(
+    (id: string) => {
+      isDragging.current = true
+      dragIdRef.current = id
+      setDragId(id)
+      setDragOffset({ x: 0, y: 0 })
+      dragOffsetRef.current = { x: 0, y: 0 }
+      lastSwapIdx.current = null
+      if (navigator.vibrate) navigator.vibrate(30)
+
+      window.addEventListener("pointermove", onWindowPointerMove)
+      window.addEventListener("pointerup", onWindowPointerUp)
+    },
+    [onWindowPointerMove, onWindowPointerUp]
+  )
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent, id: string) => {
       if (e.button !== 0) return
-      const origin = { x: e.clientX, y: e.clientY }
-      dragOrigin.current = origin
+      pressOrigin.current = { x: e.clientX, y: e.clientY }
+      lastPointerRef.current = { x: e.clientX, y: e.clientY }
       isDragging.current = false
 
+      const cardEl = e.currentTarget as HTMLElement
+      const rect = cardEl.getBoundingClientRect()
+      grabDelta.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+
       longPressTimer.current = setTimeout(() => {
-        isDragging.current = true
-        setDragId(id)
-        setDragOffset({ x: 0, y: 0 })
-        lastSwapIdx.current = null
-        if (navigator.vibrate) navigator.vibrate(30)
+        startDrag(id)
       }, LONG_PRESS_MS)
     },
-    []
+    [startDrag]
   )
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!dragOrigin.current) return
-
-      if (!isDragging.current) {
-        const dx = e.clientX - dragOrigin.current.x
-        const dy = e.clientY - dragOrigin.current.y
-        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
-          clearLongPress()
-        }
-        return
-      }
-
-      setDragOffset({
-        x: e.clientX - dragOrigin.current.x,
-        y: e.clientY - dragOrigin.current.y,
-      })
-
-      // Hit-test and live-swap
-      const elUnder = document.elementFromPoint(e.clientX, e.clientY)
-      if (elUnder) {
-        const cardEl = (elUnder as HTMLElement).closest("[data-card-idx]") as HTMLElement | null
-        if (cardEl) {
-          const targetIdx = parseInt(cardEl.dataset.cardIdx ?? "", 10)
-          if (!isNaN(targetIdx) && targetIdx !== lastSwapIdx.current) {
-            const fromIdx = animals.findIndex((a) => a.id === dragId)
-            if (fromIdx !== -1 && fromIdx !== targetIdx) {
-              snapshotPositions()
-              const reordered = [...animals]
-              const [moved] = reordered.splice(fromIdx, 1)
-              reordered.splice(targetIdx, 0, moved)
-              onReorder(reordered)
-            }
-            lastSwapIdx.current = targetIdx
-          }
-        }
+      if (isDragging.current || !pressOrigin.current) return
+      const dx = e.clientX - pressOrigin.current.x
+      const dy = e.clientY - pressOrigin.current.y
+      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+        clearLongPress()
+        pressOrigin.current = null
       }
     },
-    [clearLongPress, dragId, animals, onReorder, snapshotPositions]
+    [clearLongPress]
   )
 
   const handlePointerUp = useCallback(() => {
     clearLongPress()
-    isDragging.current = false
-    dragOrigin.current = null
-    lastSwapIdx.current = null
-    setDragId(null)
-    setDragOffset({ x: 0, y: 0 })
+    pressOrigin.current = null
   }, [clearLongPress])
 
+  const handleCardClick = useCallback(
+    (id: string) => {
+      if (Date.now() < suppressClickUntil.current) return
+      onSelect(id)
+    },
+    [onSelect]
+  )
+
   useEffect(() => {
-    return () => clearLongPress()
-  }, [clearLongPress])
+    return () => {
+      clearLongPress()
+      window.removeEventListener("pointermove", onWindowPointerMove)
+      window.removeEventListener("pointerup", onWindowPointerUp)
+    }
+  }, [clearLongPress, onWindowPointerMove, onWindowPointerUp])
 
   const handleAddClick = useCallback(() => {
     setShowSpeciesPicker(true)
@@ -159,11 +280,8 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
   )
 
   const setCardRef = useCallback((id: string, el: HTMLDivElement | null) => {
-    if (el) {
-      cardRefs.current.set(id, el)
-    } else {
-      cardRefs.current.delete(id)
-    }
+    if (el) cardRefs.current.set(id, el)
+    else cardRefs.current.delete(id)
   }, [])
 
   return (
@@ -190,7 +308,7 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
             aria-hidden="true"
           />
           <span className="text-[6px] text-neutral-500 tracking-[0.2em]">
-            PET-DEX v1.0
+            HERP-DEX v1.0
           </span>
         </div>
 
@@ -229,7 +347,7 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
                   {"+--------------------------+"}
                 </div>
                 <h1 className="text-[10px] text-gb-lightest tracking-[0.15em] py-0.5">
-                  PET-DEX
+                  HERP-DEX
                 </h1>
                 <div className="text-[7px] text-gb-dark">
                   {"+--------------------------+"}
@@ -240,16 +358,11 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
               <div className="text-[7px] text-gb-light text-center tracking-wider">
                 {animals.length === 0
                   ? "NO ANIMALS YET - TAP + TO ADD"
-                  : `${animals.length} ANIMAL${animals.length > 1 ? "S" : ""} REGISTERED`}
+                  : `${animals.length}/15 ANIMAL${animals.length > 1 ? "S" : ""} REGISTERED`}
               </div>
 
               {/* Grid of cards */}
-              <div
-                className="grid grid-cols-2 gap-3"
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerLeave={handlePointerUp}
-              >
+              <div className="grid grid-cols-2 gap-3">
                 {animals.map((animal, idx) => {
                   const isBeingDragged = dragId === animal.id
 
@@ -259,9 +372,15 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
                       ref={(el) => setCardRef(animal.id, el)}
                       data-card-idx={idx}
                       onPointerDown={(e) => handlePointerDown(e, animal.id)}
-                      className={`relative select-none ${isBeingDragged ? "touch-none" : ""}`}
+                      onPointerMove={handlePointerMove}
+                      onPointerUp={handlePointerUp}
+                      onPointerCancel={handlePointerUp}
+                      onContextMenu={(e) => e.preventDefault()}
+                      className="relative select-none"
                       style={{
                         zIndex: isBeingDragged ? 50 : 1,
+                        touchAction: "none",
+                        WebkitTouchCallout: "none" as never,
                         pointerEvents: isBeingDragged ? "none" : "auto",
                         ...(isBeingDragged
                           ? {
@@ -277,26 +396,28 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
                     >
                       <AnimalCard
                         animal={animal}
-                        onSelect={dragId ? () => {} : onSelect}
+                        onSelect={handleCardClick}
                         onDelete={onDelete}
                       />
                     </div>
                   )
                 })}
 
-                {/* Add button card */}
-                <button
-                  type="button"
-                  onClick={handleAddClick}
-                  className="aspect-square flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gb-dark hover:border-gb-light bg-gb-dark/10 hover:bg-gb-dark/20 transition-colors group"
-                >
-                  <span className="text-[22px] text-gb-dark group-hover:text-gb-light transition-colors leading-none">
-                    +
-                  </span>
-                  <span className="text-[8px] text-gb-dark group-hover:text-gb-light transition-colors tracking-wider">
-                    ADD NEW
-                  </span>
-                </button>
+                {/* Add button card — hidden when at capacity */}
+                {animals.length < 15 && (
+                  <button
+                    type="button"
+                    onClick={handleAddClick}
+                    className="aspect-square flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gb-dark hover:border-gb-light bg-gb-dark/10 hover:bg-gb-dark/20 transition-colors group"
+                  >
+                    <span className="text-[22px] text-gb-dark group-hover:text-gb-light transition-colors leading-none">
+                      +
+                    </span>
+                    <span className="text-[8px] text-gb-dark group-hover:text-gb-light transition-colors tracking-wider">
+                      ADD NEW
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -304,9 +425,26 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
 
         {/* Bottom shell detail */}
         <div className="flex items-center px-3 mt-3 mb-1">
-          <span className="text-[6px] text-neutral-600 tracking-[0.15em] flex-1">
-            PET-DEX
-          </span>
+          <div className="flex items-center gap-2 flex-1">
+            {onExport && (
+              <button
+                onClick={onExport}
+                className="text-[5px] text-neutral-600 hover:text-neutral-400 tracking-[0.1em] transition-colors"
+                aria-label="Export data"
+              >
+                EXPORT
+              </button>
+            )}
+            {onImport && (
+              <button
+                onClick={onImport}
+                className="text-[5px] text-neutral-600 hover:text-neutral-400 tracking-[0.1em] transition-colors"
+                aria-label="Import data"
+              >
+                IMPORT
+              </button>
+            )}
+          </div>
           {onOpenChat && (
             <button
               onClick={onOpenChat}
@@ -317,7 +455,7 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
                 <rect x="0" y="1" width="7" height="5" rx="0" />
                 <polygon points="1,6 3,6 1,8" />
               </svg>
-              PET-AI
+              HERP-AI
             </button>
           )}
           <div className="flex items-center gap-2 flex-1 justify-end">

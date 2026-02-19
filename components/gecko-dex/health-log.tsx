@@ -8,6 +8,7 @@ export type { HealthLogType, HealthLogEntry }
 const GECKO_FILTERS: { value: HealthLogType | "all"; label: string }[] = [
   { value: "all", label: "ALL" },
   { value: "feeding", label: "FEED" },
+  { value: "water", label: "WATER" },
   { value: "meds", label: "MEDS" },
   { value: "vet", label: "VET" },
   { value: "shed", label: "SHED" },
@@ -19,11 +20,6 @@ const BEETLE_FILTERS: { value: HealthLogType | "all"; label: string }[] = [
   { value: "substrate", label: "SUB." },
 ]
 
-const DOG_FILTERS: { value: HealthLogType | "all"; label: string }[] = [
-  { value: "all", label: "ALL" },
-  { value: "meds", label: "MEDS" },
-  { value: "vet", label: "VET" },
-]
 
 interface HealthLogProps {
   entries: HealthLogEntry[]
@@ -32,7 +28,7 @@ interface HealthLogProps {
 }
 
 export function HealthLog({ entries, species, fullScreen }: HealthLogProps) {
-  const filters = species === "DOG" ? DOG_FILTERS : species === "RHINO BEETLE" ? BEETLE_FILTERS : GECKO_FILTERS
+  const filters = species === "RHINO BEETLE" ? BEETLE_FILTERS : GECKO_FILTERS
   const [filter, setFilter] = useState<HealthLogType | "all">("all")
   const scrollRef = useRef<HTMLDivElement>(null)
 

@@ -22,6 +22,12 @@ export function SubstrateModal({ currentSubstrate, lastChange, onConfirm, onCanc
   const [customName, setCustomName] = useState("")
   const [confirmed, setConfirmed] = useState(false)
 
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel() }
+    document.addEventListener("keydown", h)
+    return () => document.removeEventListener("keydown", h)
+  }, [onCancel])
+
   // Compute days since last change
   const daysSinceChange = (() => {
     const now = new Date()

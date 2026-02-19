@@ -43,7 +43,7 @@ export function PinScreen({ onSubmit, loading, error }: PinScreenProps) {
         >
           {/* Inner screen */}
           <div
-            className="flex flex-col items-center gap-6 py-10 px-6"
+            className="flex flex-col items-center gap-4 py-6 px-4"
             style={{
               background: "#0f380f",
               border: "3px solid #0a2a0a",
@@ -59,35 +59,36 @@ export function PinScreen({ onSubmit, loading, error }: PinScreenProps) {
 
             {/* Title */}
             <div className="text-center">
-              <h1 className="text-[14px] text-gb-lightest tracking-[0.15em] mb-2">
-                PET-DEX
+              <h1 className="text-[9px] text-gb-lightest tracking-[0.15em] mb-1">
+                HERP-DEX
               </h1>
-              <div className="text-[17px] text-gb-dark tracking-wider">
+              <div className="text-[7px] text-gb-dark tracking-wider">
                 CLOUD SYNC
               </div>
             </div>
 
             {/* Instructions */}
-            <div className="text-[15px] text-gb-light text-center leading-relaxed max-w-[240px]">
+            <div className="text-[6px] text-gb-light text-center leading-relaxed max-w-[200px]">
               ENTER YOUR PIN TO SYNC DATA ACROSS ALL YOUR DEVICES.
               USE THE SAME PIN ON EVERY DEVICE.
             </div>
 
             {/* PIN input */}
-            <div className="flex flex-col items-center gap-3 w-full max-w-[200px]">
+            <div className="flex flex-col items-center gap-2 w-full max-w-[160px]">
               <input
-                type="text"
+                type="password"
                 value={pin}
                 onChange={(e) => setPin(e.target.value.toUpperCase())}
                 onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 placeholder="YOUR PIN"
                 maxLength={20}
-                className="w-full text-center text-[26px] tracking-[0.3em] py-2 px-3 border-2 border-gb-dark bg-gb-darkest text-gb-lightest placeholder:text-gb-dark focus:border-gb-light focus:outline-none"
+                autoComplete="off"
+                className="w-full text-center text-[10px] tracking-[0.3em] py-1.5 px-2 border-2 border-gb-dark bg-gb-darkest text-gb-lightest placeholder:text-gb-dark focus:border-gb-light focus:outline-none"
                 autoFocus
               />
 
               {error && (
-                <div className="text-[13px] text-red-400 text-center">
+                <div className="text-[6px] text-red-400 text-center">
                   {error}
                 </div>
               )}
@@ -95,14 +96,14 @@ export function PinScreen({ onSubmit, loading, error }: PinScreenProps) {
               <button
                 onClick={handleSubmit}
                 disabled={pin.trim().length < 4 || loading}
-                className="w-full py-2 text-[17px] tracking-wider border-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-gb-darkest text-gb-light border-gb-dark hover:border-gb-light hover:text-gb-lightest"
+                className="w-full py-1.5 text-[7px] tracking-wider border-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-gb-darkest text-gb-light border-gb-dark hover:border-gb-light hover:text-gb-lightest"
               >
                 {loading ? "CONNECTING..." : "ENTER"}
               </button>
             </div>
 
             {/* Hint */}
-            <div className="text-[11px] text-gb-dark text-center tracking-wider">
+            <div className="text-[5px] text-gb-dark text-center tracking-wider">
               MIN 4 CHARACTERS
             </div>
           </div>

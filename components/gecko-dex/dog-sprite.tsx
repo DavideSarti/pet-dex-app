@@ -51,7 +51,7 @@ export function DogSprite({ customPhoto, onPhotoChange }: DogSpriteProps) {
       {/* Pixel frame with overlaid buttons */}
       <div className="relative">
         <div className="pixel-border bg-gb-darkest p-[3px]">
-          <div className="relative w-[147px] h-[124px] bg-gb-dark flex items-center justify-center overflow-hidden">
+          <div className="relative w-[176px] h-[149px] bg-gb-dark flex items-center justify-center overflow-hidden">
             {customPhoto ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={customPhoto} alt="Custom dog photo" className="w-full h-full object-cover" />
@@ -59,8 +59,8 @@ export function DogSprite({ customPhoto, onPhotoChange }: DogSpriteProps) {
               <Image
                 src="/images/dog-sprite.png"
                 alt="Pixel art of an Alaskan Malamute"
-                width={147}
-                height={124}
+                width={176}
+                height={149}
                 className="object-contain"
                 style={{ imageRendering: "pixelated" }}
                 priority
