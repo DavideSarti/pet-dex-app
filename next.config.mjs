@@ -3,7 +3,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  output: process.env.CF_PAGES ? "export" : undefined,
+  output: "standalone",
   async headers() {
     return [
       {
