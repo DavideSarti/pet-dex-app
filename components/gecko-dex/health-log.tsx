@@ -45,28 +45,30 @@ export function HealthLog({ entries, species, fullScreen }: HealthLogProps) {
 
   return (
     <div className={`pixel-border-inset bg-gb-darkest p-2.5 flex flex-col ${fullScreen ? "flex-1 min-h-0" : ""}`}>
-      <div className="flex items-center justify-between gap-1.5 mb-1.5 border-b border-gb-dark pb-1">
+      <div className={`flex items-center ${fullScreen ? "justify-between" : "justify-center"} gap-1.5 mb-1.5 border-b border-gb-dark pb-1`}>
         <span className="text-[5px] text-gb-dark tracking-wider shrink-0">
-          {"- RECORDS -"}
+          {fullScreen ? "- RECORDS -" : "- LOGS -"}
         </span>
-        <div className="flex gap-0.5 items-center flex-wrap">
-          {filters.map(({ value, label }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setFilter(value)}
-              className={`text-[5px] px-1 py-0.5 border transition-colors shrink-0 ${
-                filter === value
-                  ? "border-gb-light text-gb-light bg-gb-dark/50"
-                  : "border-gb-dark text-gb-dark hover:text-gb-light hover:border-gb-light"
-              }`}
-              aria-pressed={filter === value}
-              aria-label={`Filter by ${label}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {fullScreen && (
+          <div className="flex gap-0.5 items-center flex-wrap">
+            {filters.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilter(value)}
+                className={`text-[5px] px-1 py-0.5 border transition-colors shrink-0 ${
+                  filter === value
+                    ? "border-gb-light text-gb-light bg-gb-dark/50"
+                    : "border-gb-dark text-gb-dark hover:text-gb-light hover:border-gb-light"
+                }`}
+                aria-pressed={filter === value}
+                aria-label={`Filter by ${label}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <div
         ref={scrollRef}

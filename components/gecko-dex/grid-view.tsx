@@ -21,6 +21,7 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
   const [showSpeciesPicker, setShowSpeciesPicker] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [isSnapping, setIsSnapping] = useState(false)
 
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pressOrigin = useRef<{ x: number; y: number } | null>(null)
@@ -96,11 +97,17 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
     pressOrigin.current = null
     grabDelta.current = null
     lastPointerRef.current = null
-    dragOffsetRef.current = { x: 0, y: 0 }
     lastSwapIdx.current = null
-    dragIdRef.current = null
-    setDragId(null)
+
+    setIsSnapping(true)
+    dragOffsetRef.current = { x: 0, y: 0 }
     setDragOffset({ x: 0, y: 0 })
+
+    setTimeout(() => {
+      dragIdRef.current = null
+      setDragId(null)
+      setIsSnapping(false)
+    }, 250)
   }, [])
 
   const onWindowPointerMove = useCallback(
@@ -259,8 +266,14 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
     [onSelect]
   )
 
+  // Prevent native scrolling during drag so pointer events keep firing
   useEffect(() => {
+    const preventTouchMove = (e: TouchEvent) => {
+      if (isDragging.current) e.preventDefault()
+    }
+    document.addEventListener("touchmove", preventTouchMove, { passive: false })
     return () => {
+      document.removeEventListener("touchmove", preventTouchMove)
       clearLongPress()
       window.removeEventListener("pointermove", onWindowPointerMove)
       window.removeEventListener("pointerup", onWindowPointerUp)
@@ -379,16 +392,19 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
                       className="relative select-none"
                       style={{
                         zIndex: isBeingDragged ? 50 : 1,
-                        touchAction: "none",
+                        touchAction: isBeingDragged ? "none" : "auto",
                         WebkitTouchCallout: "none" as never,
-                        pointerEvents: isBeingDragged ? "none" : "auto",
+                        pointerEvents: isBeingDragged && !isSnapping ? "none" : "auto",
                         ...(isBeingDragged
                           ? {
-                              transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) scale(1.05)`,
-                              transition: "box-shadow 0.2s",
-                              boxShadow:
-                                "0 8px 24px rgba(0,0,0,0.5), 0 0 0 2px rgba(139,172,15,0.4)",
-                              opacity: 0.9,
+                              transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)${isSnapping ? "" : " scale(1.05)"}`,
+                              transition: isSnapping
+                                ? "transform 250ms ease-out, box-shadow 250ms ease-out, opacity 250ms ease-out"
+                                : "box-shadow 0.2s",
+                              boxShadow: isSnapping
+                                ? "none"
+                                : "0 8px 24px rgba(0,0,0,0.5), 0 0 0 2px rgba(139,172,15,0.4)",
+                              opacity: isSnapping ? 1 : 0.9,
                             }
                           : {}),
                         borderRadius: "2px",
@@ -459,14 +475,6 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
             </button>
           )}
           <div className="flex items-center gap-2 flex-1 justify-end">
-            {onChangePin && (
-              <button
-                onClick={onChangePin}
-                className="text-[6px] text-neutral-600 hover:text-neutral-400 tracking-[0.1em] transition-colors"
-              >
-                CHANGE PIN
-              </button>
-            )}
             <div className="flex gap-[3px]" aria-hidden="true">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
@@ -476,6 +484,14 @@ export function GridView({ animals, onSelect, onAdd, onDelete, onReorder, onChan
                 />
               ))}
             </div>
+            {onChangePin && (
+              <button
+                onClick={onChangePin}
+                className="text-[6px] text-neutral-600 hover:text-neutral-400 tracking-[0.1em] transition-colors"
+              >
+                CHANGE PIN
+              </button>
+            )}
           </div>
         </div>
       </div>

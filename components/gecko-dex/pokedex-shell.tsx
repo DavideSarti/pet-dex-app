@@ -13,11 +13,12 @@ import { FeedModal, type FeedRow } from "./feed-modal"
 import { WeightModal } from "./weight-modal"
 import { ShedModal } from "./shed-modal"
 import { MedsModal } from "./meds-modal"
+import { WaterModal } from "./water-modal"
 
 const BeetleSprite = dynamic(() => import("./beetle-sprite").then(m => ({ default: m.BeetleSprite })), { ssr: false })
 const BeetleStats = dynamic(() => import("./beetle-stats").then(m => ({ default: m.BeetleStats })), { ssr: false })
 const SubstrateModal = dynamic(() => import("./substrate-modal").then(m => ({ default: m.SubstrateModal })), { ssr: false })
-type ModalType = "feed" | "weight" | "shed" | "meds" | "substrate" | null
+type ModalType = "feed" | "weight" | "shed" | "meds" | "substrate" | "water" | null
 
 const GECKO_TABS = ["FEED", "WATER", "WEIGHT", "SHED", "MEDS"]
 const BEETLE_TABS = ["FEED", "WEIGHT", "SUBSTRATE", "MEDS"]
@@ -77,7 +78,11 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
   const MAX_LOGS_PER_DAY = 50
   const canAddLog = useCallback(() => {
     const today = getTodayISO()
-    const todayCount = healthLogRef.current.filter((e) => e.id.length >= 13 && new Date(Number(e.id)).toISOString().slice(0, 10) === today).length
+    const todayCount = healthLogRef.current.filter((e) => {
+      const n = Number(e.id)
+      if (isNaN(n)) return false
+      try { return new Date(n).toISOString().slice(0, 10) === today } catch { return false }
+    }).length
     if (todayCount >= MAX_LOGS_PER_DAY) {
       showAction("MAX 50 LOGS/DAY!")
       return false
@@ -231,9 +236,11 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
   )
 
   // --- Water Change (gecko) ---
-  const handleWaterChange = useCallback(
+  const openWater = useCallback(() => setActiveModal("water"), [])
+
+  const handleWaterConfirm = useCallback(
     () => {
-      if (!canAddLog()) return
+      if (!canAddLog()) { setActiveModal(null); return }
       const iso = getTodayISO()
       const dateStr = getDateStr()
       const newEntry: HealthLogEntry = {
@@ -246,6 +253,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
       setHealthLog(updatedLog)
       pushUpdate({ lastWaterChange: iso, healthLog: updatedLog })
       showAction("WATER CHANGED!")
+      setActiveModal(null)
     },
     [showAction, pushUpdate, canAddLog]
   )
@@ -370,11 +378,11 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
       if (tab === "FEED") openFeed()
       else if (tab === "WEIGHT") openWeight()
       else if (tab === "SHED") openShed()
-      else if (tab === "WATER") handleWaterChange()
+      else if (tab === "WATER") openWater()
       else if (tab === "SUBSTRATE") openSubstrate()
       else if (tab === "MEDS") openMeds()
     },
-    [openFeed, openWeight, openShed, handleWaterChange, openSubstrate, openMeds]
+    [openFeed, openWeight, openShed, openWater, openSubstrate, openMeds]
   )
 
   const titleLabel = "HERP-DEX"
@@ -535,13 +543,16 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                 </div>
               )}
 
-              {/* Logs button */}
+              {/* Inline recent records */}
+              <HealthLog entries={healthLog} species={animal.species} />
+
+              {/* Full logs button */}
               <button
                 type="button"
                 onClick={() => setShowLogs(true)}
                 className="w-full py-1.5 text-[7px] text-gb-darkest bg-gb-light hover:bg-gb-lightest border-2 border-gb-lightest tracking-wider text-center transition-colors font-bold"
               >
-                LOGS
+                FULL LOGS
               </button>
 
               {/* Smart Terrarium button */}
@@ -586,6 +597,12 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                 currentSubstrate={substrate}
                 lastChange={lastSubstrateChange}
                 onConfirm={handleSubstrateConfirm}
+                onCancel={closeModal}
+              />
+            )}
+            {activeModal === "water" && !isBeetle && (
+              <WaterModal
+                onConfirm={handleWaterConfirm}
                 onCancel={closeModal}
               />
             )}

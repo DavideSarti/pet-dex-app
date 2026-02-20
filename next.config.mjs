@@ -3,7 +3,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  output: "export",
+  ...(process.env.NODE_ENV === "production" ? { output: "export" } : {}),
   async headers() {
     return [
       {
