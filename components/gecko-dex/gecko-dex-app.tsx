@@ -6,6 +6,7 @@ import { GridView } from "./grid-view"
 import { PokedexShell } from "./pokedex-shell"
 import { PinScreen } from "./pin-screen"
 import { ChatModal } from "./chat-modal"
+import { SplashScreen } from "./splash-screen"
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase"
 
 const STORAGE_KEY = "herp-dex-animals"
@@ -142,6 +143,9 @@ async function saveToCloud(
 // ---- Main component ----
 
 export function GeckoDexApp() {
+  const [showSplash, setShowSplash] = useState(true)
+  const handleSplashDone = useCallback(() => setShowSplash(false), [])
+
   const cloudEnabled = isSupabaseConfigured()
 
   const [pin, setPin] = useState<string | null>(loadPinLocal)
@@ -354,6 +358,10 @@ export function GeckoDexApp() {
   const [showChat, setShowChat] = useState(false)
   const handleOpenChat = useCallback(() => setShowChat(true), [])
   const handleCloseChat = useCallback(() => setShowChat(false), [])
+
+  if (showSplash) {
+    return <SplashScreen onDone={handleSplashDone} />
+  }
 
   // Show PIN screen if cloud is enabled but not yet authenticated
   if (cloudEnabled && !ready) {
