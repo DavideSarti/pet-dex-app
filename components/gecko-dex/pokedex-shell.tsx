@@ -14,6 +14,7 @@ import { WeightModal } from "./weight-modal"
 import { ShedModal } from "./shed-modal"
 import { MedsModal } from "./meds-modal"
 import { WaterModal } from "./water-modal"
+import { DeleteLogsModal } from "./delete-logs-modal"
 
 const BeetleSprite = dynamic(() => import("./beetle-sprite").then(m => ({ default: m.BeetleSprite })), { ssr: false })
 const BeetleStats = dynamic(() => import("./beetle-stats").then(m => ({ default: m.BeetleStats })), { ssr: false })
@@ -36,6 +37,7 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
   const [healthLog, setHealthLog] = useState<HealthLogEntry[]>(animal.healthLog)
   const [showLogs, setShowLogs] = useState(false)
   const [showSmartHome, setShowSmartHome] = useState(false)
+  const [showDeleteLogs, setShowDeleteLogs] = useState(false)
   const [lastAction, setLastAction] = useState<string | null>(null)
   const [weight, setWeight] = useState(animal.weight)
   const [lastFeed, setLastFeed] = useState(animal.lastFeed)
@@ -372,6 +374,32 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
 
   const closeModal = useCallback(() => setActiveModal(null), [])
 
+  const handleDeleteLogs = useCallback(
+    (from: string | null, to: string | null) => {
+      let updatedLog: HealthLogEntry[]
+      if (!from && !to) {
+        updatedLog = []
+      } else {
+        updatedLog = healthLogRef.current.filter((e) => {
+          const n = Number(e.id)
+          if (isNaN(n) || n < 1e12) return true
+          try {
+            const d = new Date(n).toISOString().slice(0, 10)
+            if (from && d < from) return true
+            if (to && d > to) return true
+            return false
+          } catch { return true }
+        })
+      }
+      setHealthLog(updatedLog)
+      pushUpdate({ healthLog: updatedLog })
+      const deleted = healthLogRef.current.length - updatedLog.length
+      showAction(deleted + " LOG" + (deleted !== 1 ? "S" : "") + " DELETED!")
+      setShowDeleteLogs(false)
+    },
+    [showAction, pushUpdate]
+  )
+
   // --- Tab select ---
   const handleTabSelect = useCallback(
     (tab: string) => {
@@ -453,6 +481,14 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                     >
                       {"< BACK"}
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteLogs(true)}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 text-[7px] text-red-700 hover:text-red-500 transition-colors tracking-wider"
+                      aria-label="Delete logs"
+                    >
+                      DELETE
+                    </button>
                     <div className="text-[7px] text-gb-dark">
                       {"+--------------------------+"}
                     </div>
@@ -464,6 +500,13 @@ export function PokedexShell({ animal, onUpdate, onBack, onOpenChat }: PokedexSh
                     </div>
                   </header>
                   <HealthLog entries={healthLog} species={animal.species} fullScreen />
+                  {showDeleteLogs && (
+                    <DeleteLogsModal
+                      entries={healthLog}
+                      onDelete={handleDeleteLogs}
+                      onCancel={() => setShowDeleteLogs(false)}
+                    />
+                  )}
                 </>
               ) : (
               <>
